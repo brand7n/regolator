@@ -14,7 +14,7 @@ class encrypt extends Command
      *
      * @var string
      */
-    protected $signature = 'app:encrypt {email} {name}';
+    protected $signature = 'app:encrypt {email} {name} {password}';
 
     /**
      * The console command description.
@@ -31,7 +31,7 @@ class encrypt extends Command
         $user = new User;
         $user->name = $this->argument('name');
         $user->email = $this->argument('email');
-        $user->password = $random = Str::random(40);
+        $user->password = $this->argument('password');// Str::random(40);
         $user->save();
         
         $user_data = json_encode([
