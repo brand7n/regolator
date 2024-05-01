@@ -46,6 +46,6 @@ class encrypt extends Command
         $this->info('Actual password: ' . $actual_password);
         $this->info('Quick login: ' . $quick_login);
 
-        Mail::to($user)->send(new RegoInvite());
+        Mail::to($user)->send(new RegoInvite($user, url('/quicklogin/' . $quick_login)));
     }
 }

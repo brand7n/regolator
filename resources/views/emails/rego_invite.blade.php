@@ -3,8 +3,8 @@
 
 The body of your message.
 
-<x-mail::button :url="''">
-Button Text
+<x-mail::button :url="$url">
+Click Here
 </x-mail::button>
 
 Thanks,<br>
