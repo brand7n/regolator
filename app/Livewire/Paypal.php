@@ -93,6 +93,6 @@ class Paypal extends Component
     public function accept_terms()
     {
         session(['terms_accepted' => true]);
-         return redirect()->to('/dashboard');    
+        return redirect()->to('/dashboard');
     }
 }

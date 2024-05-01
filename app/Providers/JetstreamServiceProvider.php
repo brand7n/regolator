@@ -24,6 +24,9 @@ class JetstreamServiceProvider extends ServiceProvider
         $this->configurePermissions();
 
         Jetstream::deleteUsersUsing(DeleteUser::class);
+
+        // use our own component that doesn't require password verification
+        \Livewire\Livewire::component('profile.logout-other-browser-sessions-form', \App\Livewire\LogoutOtherBrowserSessionsForm::class);
     }
 
     /**

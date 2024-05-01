@@ -1,4 +1,4 @@
-<div>
+<div class="px-4">
     <h1 class="mt-8 text-2xl font-medium text-gray-900 dark:text-white">
         {{ $title }}
     </h1>
