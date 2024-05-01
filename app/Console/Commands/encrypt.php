@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RegoInvite;
 
 class encrypt extends Command
 {
@@ -14,14 +16,14 @@ class encrypt extends Command
      *
      * @var string
      */
-    protected $signature = 'app:encrypt {email} {name} {password}';
+    protected $signature = 'app:encrypt {email} {name}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Create user and encrypt quick URL';
 
     /**
      * Execute the console command.
@@ -31,16 +33,19 @@ class encrypt extends Command
         $user = new User;
         $user->name = $this->argument('name');
         $user->email = $this->argument('email');
-        $user->password = $this->argument('password');// Str::random(40);
+        $actual_password = Str::random(40);
+        $user->password = $actual_password;
         $user->save();
         
         $user_data = json_encode([
             'id' => $user->id,
-            //'email' => $user->email,
             'hash' => $user->password,
-            //'salt' => Str::random(5),
         ]);
-        $this->info($user_data);
-        $this->info(Crypt::encryptString($user_data));
+        $quick_login = Crypt::encryptString($user_data);
+
+        $this->info('Actual password: ' . $actual_password);
+        $this->info('Quick login: ' . $quick_login);
+
+        Mail::to($user)->send(new RegoInvite());
     }
 }
