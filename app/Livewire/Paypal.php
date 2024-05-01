@@ -6,16 +6,23 @@ use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use GuzzleHttp\Client;
 use Auth;
+use Illuminate\Support\Carbon;
 
 class Paypal extends Component
 {
     public $key;
     public $price = 160;
-    public $description = "Rego for whomever";
+    public $rego_paid_at;
+    public $terms_accepted = false;
 
     function __construct() {
         //parent::__construct();
-        $this->key = env('PAYPAL_CLIENT_ID', '');  
+        $this->key = env('PAYPAL_CLIENT_ID', '');
+        $this->rego_paid_at = Auth::user()->rego_paid_at;
+        if ($this->rego_paid_at) {
+            $this->rego_paid_at->setTimezone('US/Eastern');
+        }
+        $this->terms_accepted = session('terms_accepted', false);
     }
 
     public function render()
@@ -52,12 +59,24 @@ class Paypal extends Component
                 ]
             ]);
         } catch (\Throwable $t) {
-            Log::error("failed to verify order", ['user' => Auth::user(), 'order' => $details['id'], 'error' => $t]);
+            Log::error("failed to verify order", [
+                'user' => Auth::user(),
+                'order' => $details['id'],
+                'error' => $t,
+            ]);
             return;
         }
 
         if ($response->getStatusCode() === 200) {
-            // TODO: mark paid
+            Auth::user()->rego_paid_at = Carbon::now();
+            Auth::user()->save();
+        } else {
+            Log::error("failed to verify order", [
+                'user' => Auth::user(),
+                'order' => $details['id'],
+                'code' => $response->getStatusCode(),
+                'response' => $response->getReasonPhrase(),
+            ]);
         }
     }
 
@@ -69,5 +88,11 @@ class Paypal extends Component
     public function error($err)
     {
         Log::error("transaction error", ['user' => Auth::user(), 'error' => $err]);
+    }
+
+    public function accept_terms()
+    {
+        session(['terms_accepted' => true]);
+         return redirect()->to('/dashboard');    
     }
 }
