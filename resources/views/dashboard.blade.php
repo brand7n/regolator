@@ -20,8 +20,8 @@ NOTE: Short Bus regos will be $50 CASH paid at the registration table. If you wa
 WE LOVE DOGS BUT SADLY, NO DOGS ALLOWED AT THIS EVENT. WE CANNOT ACCOMMODATE LARGE POP-UP CAMPERS / TRAVEL TRAILERS / RVs ABOVE VAN-ISH SIZE. CAR CAMPING / TENT CAMPING IS PREFERRED. SCHEDULE OF EVENTS IS APPROXIMATE AND SUBJECT TO CHANGE.</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-LOCATION:
-Sons of Italy Campground, Lock Haven, Pa
+LOCATION:<br>
+Sons of Italy Campground<br>
 44 Sons Rd, Lock Haven, PA 17745</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
