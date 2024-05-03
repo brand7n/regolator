@@ -12,12 +12,26 @@
                 createOrder: function(data, actions) {
                     return actions.order.create({
                         intent: 'CAPTURE',
-                        purchase_units: [{ 
-                            amount: { 
+                        soft_descriptor: "NVHHH1850",
+                        purchase_units: [{
+                            amount: {
                                 currency_code: "USD",
                                 value: {{ $price }},
-                                description: "ALL YOUR REGO ARE BELONG TO US" 
-                            }
+                                breakdown: {
+                                    item_total: {
+                                        currency_code: "USD",
+                                        value: {{ $price }},
+                                    }
+                                }
+                            },
+                            items: [{
+                                name: "NVHHH1850 rego for {{ $name }}",
+                                quantity: 1,
+                                unit_amount: {
+                                    currency_code: "USD",
+                                    value: {{ $price }}
+                                }
+                            }]
                         }]
                     });
                 },
@@ -54,7 +68,18 @@
             </h2>
         @else
         <div class="flex-col items-center">
-            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin egestas ipsum eget magna efficitur fringilla. Vestibulum placerat sit amet felis a molestie. Quisque vitae dolor non metus vehicula mollis. Proin et nisl eget ex consectetur scelerisque. Quisque vehicula sed arcu eu dictum. Integer id ligula ut neque pellentesque bibendum. Integer vitae sapien id dolor tempor lacinia et vitae nunc. Maecenas ut enim nisl. Curabitur bibendum interdum magna, eu consectetur lacus dictum sed. Sed dapibus dolor turpis, eu lobortis magna rutrum id. Fusce tempor eros pulvinar augue placerat, id mattis augue consequat. Vestibulum posuere vehicula lacinia. Duis tortor mi, semper nec iaculis eu, egestas rutrum elit.</p>
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+Participating in hashing and hashing events is a potentially hazardous activity that could result in injury or death. I am participating in this event at my own risk and I assume all risk and responsibility for injuries I may incur as a direct or indirect result of my participating in this event.</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+Having read this Waiver and knowing the risks involved in my participation in this event, I, for myself and anyone entitled to act on my behalf, waive and release the Nittany Valley Hash House Harriers, its sponsors, representatives, officers and management from all claims or liabilities of any kind arising out of my participation in this event, even though that liability may arise out of negligence or carelessness on the part of the persons or organizations named in this Waiver.</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+Further, I agree to defend, indemnify and hold harmless the Nittany Valley Hash House Harriers, its sponsors, representatives, officers and management from any and all claims which may result from my participation in this event.</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+I certify I have read this Waiver, I understand it, and I agree to its terms relating to the NVHHH #1850 event or activity hosted by the Nittany Valley Hash House Harriers.</p>
+</p>
             <x-button class="py-3 items-center" wire:click="accept_terms">I Accept</x-button>
         </div>
         @endif

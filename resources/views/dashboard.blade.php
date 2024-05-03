@@ -3,14 +3,36 @@
         <x-slot name="title">NVHHH #1850</x-slot>
         <x-slot name="content">
                     <div class="flex-col items-center">
+                    <img class="h-96" src="/_8b321d67-0654-46e7-90e1-666862d24f50.jpg" />
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin egestas ipsum eget magna efficitur fringilla. Vestibulum placerat sit amet felis a molestie. Quisque vitae dolor non metus vehicula mollis. Proin et nisl eget ex consectetur scelerisque. Quisque vehicula sed arcu eu dictum. Integer id ligula ut neque pellentesque bibendum. Integer vitae sapien id dolor tempor lacinia et vitae nunc. Maecenas ut enim nisl. Curabitur bibendum interdum magna, eu consectetur lacus dictum sed. Sed dapibus dolor turpis, eu lobortis magna rutrum id. Fusce tempor eros pulvinar augue placerat, id mattis augue consequat. Vestibulum posuere vehicula lacinia. Duis tortor mi, semper nec iaculis eu, egestas rutrum elit.
+August 2, 2024 2pm - August 4, 2024 noon</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+<b>PLEASE READ CAREFULLY AS SOME POLICIES HAVE CHANGED</b></p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+Our Tyrant DRAGNET and NVHHH again bring you the East Coast’s premier hash camp-out, nestled between Sproul and Susquehannock State Forests on the mighty West Branch of the Susquehanna! This will be our 21st year at the fabulous Loggia Giosue Carducci 146 Campground (aka The Sons).</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+NOTE: Short Bus regos will be $50 CASH paid at the registration table. If you want to be part of the Short Bus crew (and miss the REAL SATURDAY WILDERNESS TRAIL HARED BY THE EX-TYRANTS OF NITTANY VALLEY) indicate your interest during registration, pay the regular rate, and you will be contacted with further details. Plaheeease be aware there is limited space and not everyone applying is guaranteed a seat on the Short Bus.</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+WE LOVE DOGS BUT SADLY, NO DOGS ALLOWED AT THIS EVENT. WE CANNOT ACCOMMODATE LARGE POP-UP CAMPERS / TRAVEL TRAILERS / RVs ABOVE VAN-ISH SIZE. CAR CAMPING / TENT CAMPING IS PREFERRED. SCHEDULE OF EVENTS IS APPROXIMATE AND SUBJECT TO CHANGE.</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+LOCATION:
+Sons of Italy Campground, Lock Haven, Pa
+44 Sons Rd, Lock Haven, PA 17745</p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+THEME:
+DRAGNET 😱</p>
         </p>
     </div>
         </x-slot>
     </x-rego-section>
     <x-rego-section>
-        <x-slot name="title">PAY UP</x-slot>
+        <x-slot name="title">ACCEPT WAVER/PAY UP</x-slot>
         <x-slot name="content">
             <livewire:paypal />
         </x-slot>

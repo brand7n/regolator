@@ -14,6 +14,7 @@ class Paypal extends Component
     public $price = 160;
     public $rego_paid_at;
     public $terms_accepted = false;
+    public $name;
 
     function __construct() {
         //parent::__construct();
@@ -23,6 +24,7 @@ class Paypal extends Component
             $this->rego_paid_at->setTimezone('US/Eastern');
         }
         $this->terms_accepted = session('terms_accepted', false);
+        $this->name = Auth::user()->name;
     }
 
     public function render()
