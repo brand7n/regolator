@@ -15,6 +15,7 @@ class RegoInvite extends Mailable
 
     public $user;
     public $url;
+    public $name;
 
     /**
      * Create a new message instance.
@@ -23,6 +24,7 @@ class RegoInvite extends Mailable
     {
         $this->user = $user;
         $this->url = $url;
+        $this->name = $user->name;
     }
 
     /**
@@ -31,7 +33,7 @@ class RegoInvite extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Rego Invite',
+            subject: 'Nittany Rego Invite for ' . $this->name,
         );
     }
 

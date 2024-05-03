@@ -1,5 +1,5 @@
 <x-mail::message>
-# Greetings from Nittany Valley
+# Greetings from Nittany Valley, {{ $name }}
 
 On behalf of Our Exalted Tyrant, DRAGNET, it is my pleasure to present you with this rego link for NVHHH #1850, our 21st year at the fabulous Loggia Giosue Carducci 146 Campground (aka The Sons), taking place August 2-4, 2024.
 
@@ -11,6 +11,6 @@ Click Here
 
 Details on His Glorious Theme: <a href="https://en.wikipedia.org/wiki/Dragnet_(franchise)">Dragnet</a>
 
-Thanks,<br>
+ON-ON,<br>
 -tmh
 </x-mail::message>
