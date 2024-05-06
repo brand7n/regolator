@@ -54,9 +54,48 @@
 
         <!-- Name -->
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="name" value="{{ __('Name') }}" />
+            <x-label for="name" value="Hash Name" />
             <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" />
             <x-input-error for="name" class="mt-2" />
+        </div>
+
+        <!-- Nerd Name -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="nerd_name" value="Nerd Name" />
+            <x-input id="nerd_name" type="text" class="mt-1 block w-full" wire:model="state.nerd_name" required autocomplete="nerd_name" />
+            <x-input-error for="nerd_name" class="mt-2" />
+        </div>
+
+        <!-- Kennel -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="kennel" value="Kennel" />
+            <x-input id="kennel" type="text" class="mt-1 block w-full" wire:model="state.kennel" required autocomplete="kennel" />
+            <x-input-error for="kennel" class="mt-2" />
+        </div>
+
+        <!-- Shirt Size -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="shirt_size" value="Shirt Size" />
+            <select id="shirt_size" type="text" class="mt-1 block w-full" wire:model="state.shirt_size" required autocomplete="shirt_size" />
+                <option value="XS">Extra Small</option>
+                <option value="SM">Small</option>
+                <option value="MD">Medium</option>
+                <option value="LG">Large</option>
+                <option value="XL">Extra Large</option>
+                <option value="2XL">2X Large</option>
+                <option value="3XL">3X Large</option>
+            </select>
+            <x-input-error for="shirt_size" class="mt-2" />
+        </div>
+
+        <!-- Short Bus -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="short_bus" value="Short Bus" />
+            <select id="short_bus" type="text" class="mt-1 block w-full" wire:model="state.short_bus" required autocomplete="short_bus" >
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+            </select>
+            <x-input-error for="short_bus" class="mt-2" />
         </div>
 
         <!-- Email -->

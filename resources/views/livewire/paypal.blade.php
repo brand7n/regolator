@@ -63,9 +63,15 @@
         @endscript
     @else
         @if ($rego_paid_at)
+        <div class="flex-col items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                rego paid at {{ $rego_paid_at->toDateTimeString() }}
+                Rego paid for {{ $name }} at {{ $rego_paid_at->toDateTimeString() }}.
             </h2>
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+Verify your profile and edit rego preferences by clicking below. Hint: This is how you get on short bus.
+</p>
+            <x-button class="py-3 items-center" wire:click="edit">Edit</x-button>
+        </div>
         @else
         <div class="flex-col items-center">
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">

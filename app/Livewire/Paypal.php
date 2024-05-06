@@ -97,4 +97,9 @@ class Paypal extends Component
         session(['terms_accepted' => true]);
         return redirect()->to('/dashboard');
     }
+
+    public function edit()
+    {
+        return redirect()->to('/user/profile');
+    }
 }

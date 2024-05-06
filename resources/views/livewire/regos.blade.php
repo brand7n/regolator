@@ -10,7 +10,11 @@
                 </div>
             </div>
             <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+            @if ($rego->kennel !== null && strlen($rego->kennel > 0))
                 <p class="text-sm leading-6 text-gray-900 dark:text-white">{{ $rego->kennel }}</p>
+            @else
+                <p class="text-sm leading-6 text-gray-900 dark:text-white"><br /></p>
+            @endif
             @if ($rego->short_bus == 'Y')
                 <p class="mt-1 truncate text-xs leading-5 text-gray-500 dark:text-gray-400">Short Bus Requested</p>
             @endif
