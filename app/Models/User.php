@@ -63,4 +63,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'shirt_size' => 'MD',
+        'short_bus' => 'N',
+    ];
 }
