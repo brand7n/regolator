@@ -5,8 +5,7 @@
                     <div class="flex-col items-center">
                     <img class="h-96" src="/_8b321d67-0654-46e7-90e1-666862d24f50.jpg" />
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-August 2, 2024 2pm - August 4, 2024 noon</p>
-
+August 2, 2024 2pm - August 4, 2024 noon ({{ round(((\Illuminate\Support\Carbon::now())->diffInSeconds(new \Illuminate\Support\Carbon('2024-08-02 14:00:00')))/3600) }} hours from now)</p>
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 <b>PLEASE READ CAREFULLY AS SOME POLICIES HAVE CHANGED</b></p>
 
@@ -25,8 +24,7 @@ Sons of Italy Campground<br>
 44 Sons Rd, Lock Haven, PA 17745</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-THEME:
-DRAGNET 😱</p>
+DETAILS ON HIS GLORIOUS THEME: <a href="https://en.wikipedia.org/wiki/Dragnet_(franchise)">DRAGNET 😱</a></p>
         </p>
     </div>
         </x-slot>
