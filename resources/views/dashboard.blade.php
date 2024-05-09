@@ -1,11 +1,12 @@
 <x-app-layout>
     <x-rego-section>
-        <x-slot name="title">NVHHH #1850</x-slot>
+        <x-slot name="title">NVHHH #1850: DRAGNET</x-slot>
         <x-slot name="content">
                     <div class="flex-col items-center">
                     <img class="h-96" src="/_8b321d67-0654-46e7-90e1-666862d24f50.jpg" />
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-August 2, 2024 2pm - August 4, 2024 noon ({{ round(((\Illuminate\Support\Carbon::now())->diffInSeconds(new \Illuminate\Support\Carbon('2024-08-02 14:00:00')))/3600) }} hours from now)</p>
+August 2, 2024 2pm - August 4, 2024 noon</p>
+<div class="animate-bounce font-semibold text-gray-800 dark:text-gray-200">({{ round(((\Illuminate\Support\Carbon::now())->diffInSeconds(new \Illuminate\Support\Carbon('2024-08-02 14:00:00')))/3600) }} hours from now)</div>
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 <b>PLEASE READ CAREFULLY AS SOME POLICIES HAVE CHANGED</b></p>
 
@@ -24,13 +25,15 @@ Sons of Italy Campground<br>
 44 Sons Rd, Lock Haven, PA 17745</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-DETAILS ON HIS GLORIOUS THEME: <a href="https://en.wikipedia.org/wiki/Dragnet_(franchise)">DRAGNET 😱</a></p>
-        </p>
+DETAILS ON HIS GLORIOUS THEME: <a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href="https://en.wikipedia.org/wiki/Dragnet_(franchise)">DRAGNET 😱</a></p>
+
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+COST: $160/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>
         </x-slot>
     </x-rego-section>
     <x-rego-section>
-        <x-slot name="title">ACCEPT WAVER/PAY UP</x-slot>
+        <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">
             <livewire:paypal />
         </x-slot>

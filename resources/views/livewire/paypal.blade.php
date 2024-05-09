@@ -40,7 +40,7 @@
                     return actions.order.capture().then(function(details) {
                         console.log('Transaction completed by ' + details.payer.name.given_name + '!');
                         $wire.approve(details).then(function () {
-                            location.reload();        
+                            //location.reload();
                         });
                     });
                 },
@@ -68,7 +68,7 @@
                 Rego paid for {{ $name }} at {{ $rego_paid_at->toDateTimeString() }}.
             </h2>
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-Verify your profile and edit rego preferences by clicking below. Hint: This is how you get on short bus.
+Verify your profile and edit rego preferences by clicking below. Hint: This is also how you get on short bus.
 </p>
             <x-button class="py-3 items-center" wire:click="edit">Edit</x-button>
         </div>

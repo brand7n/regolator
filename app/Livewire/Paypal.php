@@ -72,6 +72,7 @@ class Paypal extends Component
         if ($response->getStatusCode() === 200) {
             Auth::user()->rego_paid_at = Carbon::now();
             Auth::user()->save();
+            return redirect()->to('/user/profile');
         } else {
             Log::error("failed to verify order", [
                 'user' => Auth::user(),
@@ -80,6 +81,7 @@ class Paypal extends Component
                 'response' => $response->getReasonPhrase(),
             ]);
         }
+        return redirect()->to('/dashboard');
     }
 
     public function cancel()
