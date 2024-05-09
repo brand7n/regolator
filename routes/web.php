@@ -24,6 +24,7 @@ Route::get('quicklogin/{key}', function($key) {
     $user = User::where('id', $user_data['id'])->first();
     if ($user && $user->password === $user_data['hash']) {
         Auth::login($user); // login user automatically
+        activity()->causedBy($user)->log('quick login');
     }
     return redirect('dashboard');
 });

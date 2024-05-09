@@ -12,7 +12,7 @@
                 createOrder: function(data, actions) {
                     return actions.order.create({
                         intent: 'CAPTURE',
-                        soft_descriptor: "NVHHH1850",
+                        soft_descriptor: "{{ $event }}",
                         purchase_units: [{
                             amount: {
                                 currency_code: "USD",
@@ -25,7 +25,7 @@
                                 }
                             },
                             items: [{
-                                name: "NVHHH1850 rego for {{ $name }}",
+                                name: "{{ $event }} rego for {{ $name }}",
                                 quantity: 1,
                                 unit_amount: {
                                     currency_code: "USD",

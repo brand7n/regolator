@@ -12,6 +12,7 @@ class Paypal extends Component
 {
     public $key;
     public $price = 160;
+    public $event = 'NVHHH1850';
     public $rego_paid_at;
     public $terms_accepted = false;
     public $name;
@@ -66,12 +67,19 @@ class Paypal extends Component
                 'order' => $details['id'],
                 'error' => $t,
             ]);
-            return;
+            return redirect()->to('/user/profile');
         }
 
         if ($response->getStatusCode() === 200) {
             Auth::user()->rego_paid_at = Carbon::now();
             Auth::user()->save();
+
+            activity()->causedBy(Auth::user())->withProperties([
+                'event' => $event,
+                'transaction' => $details['id'],
+                'data' => $response->getBody()->getContents()
+            ])->log('transaction verified');
+
             return redirect()->to('/user/profile');
         } else {
             Log::error("failed to verify order", [
