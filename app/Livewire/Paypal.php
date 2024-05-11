@@ -75,7 +75,7 @@ class Paypal extends Component
             Auth::user()->save();
 
             activity()->causedBy(Auth::user())->withProperties([
-                'event' => $event,
+                'event' => $this->event,
                 'transaction' => $details['id'],
                 'data' => $response->getBody()->getContents()
             ])->log('transaction verified');
