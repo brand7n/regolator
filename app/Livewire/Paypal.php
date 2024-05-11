@@ -105,6 +105,7 @@ class Paypal extends Component
     public function accept_terms()
     {
         session(['terms_accepted' => true]);
+        activity()->causedBy(Auth::user())->log('terms accepted');
         return redirect()->to('/dashboard');
     }
 
