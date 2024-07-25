@@ -19,6 +19,7 @@ class RegoReminder extends Mailable
     public $kennel;
     public $shirt_size;
     public $short_bus;
+    public $nerd_name;
 
     /**
      * Create a new message instance.
@@ -31,6 +32,7 @@ class RegoReminder extends Mailable
         $this->kennel = $user->kennel;
         $this->shirt_size = $user->shirt_size;
         $this->short_bus = $user->short_bus;
+        $this->nerd_name = $user->nerd_name;
     }
 
     /**
@@ -39,7 +41,7 @@ class RegoReminder extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nittany #1850 Event Information for ' . $this->name,
+            subject: 'NVHHH 1850th Weekend Event Guide for ' . $this->name,
         );
     }
 
