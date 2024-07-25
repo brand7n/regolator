@@ -1,9 +1,11 @@
 <x-mail::message>
 # Greetings from Nittany Valley, {{ $name }}
 
-On behalf of Our Exalted Tyrant, DRAGNET, it is my pleasure to present you with this rego link for NVHHH #1850, our 21st year at the fabulous Loggia Giosue Carducci 146 Campground (aka The Sons), taking place August 2-4, 2024.
+Please review your profile information, and if necessary edit by clicking the link below:
 
-This year we are using our own brand new, half-assed rego system. The button/link below will allow you to register and pay for exactly one-person, preferably yourself. For the time being, if you wish to bring a plus one, an entourage, or whatever, respond to this email including, at minimum, an email and hash name for each invdividual. If you have any problems, questions, and/or concerns, you may also reply to this email.
+- Kennel: {{ $kennel }}
+- Shirt Size: {{ $shirt_size }}
+- Short Bus: {{ $short_bus }}
 
 <x-mail::button :url="$url">
 Click Here

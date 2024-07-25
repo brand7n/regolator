@@ -25,6 +25,9 @@ class RegoReminder extends Mailable
         $this->user = $user;
         $this->url = $url;
         $this->name = $user->name;
+        $this->kennel = $user->kennel;
+        $this->shirt_size = $user->shirt_size;
+        $this->short_bus = $user->short_bus;
     }
 
     /**

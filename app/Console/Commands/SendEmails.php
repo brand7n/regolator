@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -42,7 +43,14 @@ class SendEmails extends Command
             // $this->info('Actual password: ' . $actual_password);
             // $this->info('Quick login: ' . $quick_login);
             $this->info('Sending to ' . $user->name);
-            Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login)));
+            try {
+                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login)));
+            } catch (\Throwable $t) {
+                Log::error("failed to send email", [
+                    'user' => Auth::user(),
+                    'error' => $t,
+                ]);               
+            }
             sleep(1);
         // }
     }
