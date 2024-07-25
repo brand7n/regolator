@@ -47,7 +47,7 @@ class SendEmails extends Command
                 Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login)));
             } catch (\Throwable $t) {
                 Log::error("failed to send email", [
-                    'user' => Auth::user(),
+                    'user' => $user,
                     'error' => $t,
                 ]);               
             }
