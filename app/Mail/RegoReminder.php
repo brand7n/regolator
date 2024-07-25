@@ -16,6 +16,9 @@ class RegoReminder extends Mailable
     public $user;
     public $url;
     public $name;
+    public $kennel;
+    public $shirt_size;
+    public $short_bus;
 
     /**
      * Create a new message instance.
