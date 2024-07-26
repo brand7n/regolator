@@ -17,7 +17,7 @@ class SendEmails extends Command
      *
      * @var string
      */
-    protected $signature = 'app:send-emails';
+    protected $signature = 'app:send-emails {email}';
 
     /**
      * The console command description.
@@ -31,9 +31,10 @@ class SendEmails extends Command
      */
     public function handle()
     {
+        $user = User::where('email', $this->argument('email'))->first();
+
         // $paidUsers = User::whereNotNull('rego_paid_at')->get();
         // foreach ($paidUsers as $user) {
-            $user = User::find(9);
             $user_data = json_encode([
                 'id' => $user->id,
                 'hash' => $user->password,
@@ -51,7 +52,7 @@ class SendEmails extends Command
                     'error' => $t,
                 ]);               
             }
-            sleep(1);
+            //sleep(1);
         // }
     }
 }
