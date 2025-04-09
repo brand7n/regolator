@@ -28,7 +28,7 @@ Sons of Italy Campground<br>
 DETAILS ON HIS GLORIOUS THEME: <a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href="https://en.wikipedia.org/wiki/London_Calling">NITTANY CALLING 😱</a></p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-COST: $160/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
+COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>
         </x-slot>
     </x-rego-section>
