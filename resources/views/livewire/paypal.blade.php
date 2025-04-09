@@ -1,7 +1,7 @@
 <div class="flex justify-center">
     @if ($terms_accepted && !$rego_paid_at)
         @assets
-        <script src="https://www.paypal.com/sdk/js?client-id={{ $key }}&enable-funding=venmo&disable-funding=credit,card"></script>
+        <script src="https://www.paypal.com/sdk/js?client-id={{ $key }}&disable-funding=credit,card"></script>
         @endassets
 
         <div id="paypal-button-container"></div>
