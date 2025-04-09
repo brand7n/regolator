@@ -14,7 +14,7 @@ August 1, 2025 2pm - August 3, 2024 noon</p>
 Our Tyrant DADDY'S HOME...BITCH and NVHHH again bring you the East Coast’s premier hash camp-out, nestled between Sproul and Susquehannock State Forests on the mighty West Branch of the Susquehanna! This will be our 22nd year at the fabulous Loggia Giosue Carducci 146 Campground (aka The Sons).</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-NOTE: Short Bus regos will be $50 CASH paid at the registration table. If you want to be part of the Short Bus crew (and miss the REAL SATURDAY WILDERNESS TRAIL HARED BY THE EX-TYRANTS OF NITTANY VALLEY) indicate your interest during registration, pay the regular rate, and you will be contacted with further details. Plaheeease be aware there is limited space and not everyone applying is guaranteed a seat on the Short Bus.</p>
+NOTE: Short Bus regos will be $60 CASH paid at the registration table. If you want to be part of the Short Bus crew (and miss the REAL SATURDAY WILDERNESS TRAIL HARED BY THE EX-TYRANTS OF NITTANY VALLEY) indicate your interest during registration, pay the regular rate, and you will be contacted with further details. Plaheeease be aware there is limited space and not everyone applying is guaranteed a seat on the Short Bus.</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 WE LOVE DOGS BUT SADLY, NO DOGS ALLOWED AT THIS EVENT. WE CANNOT ACCOMMODATE LARGE POP-UP CAMPERS / TRAVEL TRAILERS / RVs ABOVE VAN-ISH SIZE. CAR CAMPING / TENT CAMPING IS PREFERRED. SCHEDULE OF EVENTS IS APPROXIMATE AND SUBJECT TO CHANGE.</p>

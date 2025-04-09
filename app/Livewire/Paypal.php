@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 class Paypal extends Component
 {
     public $key;
-    public $price = 160;
+    public $price = 165;
     public $event = 'NVHHH1900';
     public $rego_paid_at;
     public $terms_accepted = false;
