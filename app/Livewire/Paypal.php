@@ -12,7 +12,7 @@ class Paypal extends Component
 {
     public $key;
     public $price = 160;
-    public $event = 'NVHHH1850';
+    public $event = 'NVHHH1900';
     public $rego_paid_at;
     public $terms_accepted = false;
     public $name;

@@ -84,7 +84,7 @@ Having read this Waiver and knowing the risks involved in my participation in th
 Further, I agree to defend, indemnify and hold harmless the Nittany Valley Hash House Harriers, its sponsors, representatives, officers and management from any and all claims which may result from my participation in this event.</p>
 
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-I certify I have read this Waiver, I understand it, and I agree to its terms relating to the NVHHH #1850 event or activity hosted by the Nittany Valley Hash House Harriers.</p>
+I certify I have read this Waiver, I understand it, and I agree to its terms relating to the NVHHH #1900 event or activity hosted by the Nittany Valley Hash House Harriers.</p>
 </p>
             <x-button class="py-3 items-center" wire:click="accept_terms">I Accept</x-button>
         </div>
