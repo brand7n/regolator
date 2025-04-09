@@ -10,6 +10,7 @@
         "laravel/jetstream": "^5.0",
         "laravel/pail": "^1.1",
         "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.14",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
         "spatie/laravel-activitylog": "^4.8"
