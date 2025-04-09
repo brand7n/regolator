@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RegoReminder;
+use App\Mail\RegoInvite;
 
 class SendEmails extends Command
 {
@@ -45,7 +46,7 @@ class SendEmails extends Command
             // $this->info('Quick login: ' . $quick_login);
             $this->info('Sending to ' . $user->name);
             try {
-                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login)));
+                Mail::to($user)->send(new RegoInvite($user, url('/quicklogin/' . $quick_login)));
             } catch (\Throwable $t) {
                 Log::error("failed to send email", [
                     'user' => $user,
