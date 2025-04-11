@@ -18,6 +18,7 @@ class Paypal extends Component
     public $event = 'NVHHH1900';
     public $rego_paid_at;
     public $terms_accepted = false;
+    public $bonus_accepted = false;
     public $name;
 
     function __construct() {
@@ -28,7 +29,12 @@ class Paypal extends Component
             $this->rego_paid_at->setTimezone('US/Eastern');
         }
         $this->terms_accepted = session('terms_accepted', false);
+        $this->bonus_accepted = session('bonus_accepted', false);
         $this->name = Auth::user()->name;
+        if ($this->bonus_accepted) {
+            $this->price += 115;
+            $this->event .= '_PLUS_EH3_32NDANAL';
+        }
     }
 
     public function render()
@@ -83,7 +89,7 @@ class Paypal extends Component
                 'data' => $response->getBody()->getContents()
             ])->log('transaction verified');
 
-	    $this->send_confirmation();
+            $this->send_confirmation();
 
             return redirect()->to('/user/profile');
         } else {
@@ -99,7 +105,6 @@ class Paypal extends Component
 
     public function cancel()
     {
-	//$this->send_confirmation();
         Log::warning("transaction cancelled", ['user' => Auth::user()]);
     }
 
@@ -112,6 +117,14 @@ class Paypal extends Component
     {
         session(['terms_accepted' => true]);
         activity()->causedBy(Auth::user())->log('terms accepted');
+        return redirect()->to('/dashboard');
+    }
+
+    public function toggle_bonus()
+    {
+        session(['bonus_accepted' => !session('bonus_accepted')]);
+        $this->bonus_accepted = session('bonus_accepted');
+        activity()->causedBy(Auth::user())->log('bonus toggled -> ' . $this->bonus_accepted);
         return redirect()->to('/dashboard');
     }
 

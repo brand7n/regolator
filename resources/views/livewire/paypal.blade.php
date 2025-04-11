@@ -4,7 +4,13 @@
         <script src="https://www.paypal.com/sdk/js?client-id={{ $key }}&disable-funding=credit,card"></script>
         @endassets
 
-        <div id="paypal-button-container"></div>
+        <div class="flex-col items-center space-y-4">
+            <x-button class="py-3 items-center " wire:click="toggle_bonus">{{ $bonus_accepted ? 'Remove' : 'Add' }} EH3 Rego Deal ({{ $bonus_accepted ? '-' : '+' }}$115)</x-button>
+            <p class="font-semibold text-gray-800 dark:text-gray-200">
+                TOTAL: ${{ $price }}
+            </p>
+            <div id="paypal-button-container"></div>
+        </div>
 
         @script
         <script>
