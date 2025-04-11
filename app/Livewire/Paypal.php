@@ -7,6 +7,9 @@ use Livewire\Component;
 use GuzzleHttp\Client;
 use Auth;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentConfirmation;
 
 class Paypal extends Component
 {
@@ -80,6 +83,8 @@ class Paypal extends Component
                 'data' => $response->getBody()->getContents()
             ])->log('transaction verified');
 
+	    $this->send_confirmation();
+
             return redirect()->to('/user/profile');
         } else {
             Log::error("failed to verify order", [
@@ -94,6 +99,7 @@ class Paypal extends Component
 
     public function cancel()
     {
+	//$this->send_confirmation();
         Log::warning("transaction cancelled", ['user' => Auth::user()]);
     }
 
@@ -112,5 +118,25 @@ class Paypal extends Component
     public function edit()
     {
         return redirect()->to('/user/profile');
+    }
+
+    protected function send_confirmation()
+    {
+	$user = Auth::user();
+
+        $user_data = json_encode([
+            'id' => $user->id,
+            'hash' => $user->password,
+        ]);
+        $quick_login = Crypt::encryptString($user_data);
+
+        try {
+            Mail::to($user)->send(new PaymentConfirmation($user, url('/quicklogin/' . $quick_login)));
+        } catch (\Throwable $t) {
+            Log::error("failed to send payment confirmation email", [
+                'user' => $user,
+                'error' => $t,
+            ]);
+        }
     }
 }
