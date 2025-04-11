@@ -33,6 +33,14 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
         </x-slot>
     </x-rego-section>
     <x-rego-section>
+        <x-slot name="title">YOU'VE UNLOCKED A SPECIAL DEAL</x-slot>
+        <x-slot name="content">
+            <p class="animate-bounce py-3 font-semibold text-gray-800 dark:text-gray-200">
+                Pay for your EH3 rego now along with your NVHHH rego and receive a $15 discount. Just add the deal when you pay below and complete your EH3 rego here (skipping the payment part): <a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href="https://hashrego.com/events/eh3-eeries-32-analversary-at-brushwood-2025">EH3 32nd Analversary At Brushwood July 3-6</a>
+            </p>
+        </x-slot>
+    </x-rego-section>
+    <x-rego-section>
         <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">
             <livewire:paypal />
