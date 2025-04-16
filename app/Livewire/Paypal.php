@@ -82,16 +82,13 @@ class Paypal extends Component
         }
 
         if ($response->getStatusCode() === 200) {
-            Auth::user()->rego_paid_at = Carbon::now();
-            Auth::user()->save();
-
             activity()->causedBy(Auth::user())->withProperties([
                 'event' => $this->event,
                 'transaction' => $details['id'],
                 'data' => $response->getBody()->getContents()
             ])->log('transaction verified');
 
-            $this->send_confirmation();
+            $this->handle_payment_success();
         } else {
             Log::error("failed to verify order", [
                 'user' => Auth::user(),
@@ -105,6 +102,7 @@ class Paypal extends Component
     public function cancel()
     {
         Log::warning("transaction cancelled", ['user' => Auth::user()]);
+        //$this->handle_payment_success();
     }
 
     public function error($err)
@@ -138,10 +136,16 @@ class Paypal extends Component
         return redirect()->to('/user/profile');
     }
 
-    protected function send_confirmation()
+    protected function handle_payment_success()
     {
         $user = Auth::user();
 
+        // save payment time
+        $this->rego_paid_at = Carbon::now();
+        $user->rego_paid_at = $this->rego_paid_at;
+        $user->save();
+
+        // send confirmation email
         $user_data = json_encode([
             'id' => $user->id,
             'hash' => $user->password,

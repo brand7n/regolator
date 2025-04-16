@@ -45,6 +45,7 @@
                         console.log('Transaction completed by ' + details.payer.name.given_name + '!');
                         $wire.approve(details).then(function () {
                             container.innerHTML = '';
+                            $wire.$refresh();
                         });
                     });
                 },
@@ -52,6 +53,8 @@
                 onCancel: function(data, actions) {
                     $wire.cancel().then(() => {
                         console.log("Cancelled");
+                        // container.innerHTML = '';
+                        // $wire.$refresh();
                     });
                 },
 
@@ -81,7 +84,7 @@
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
                 Verify your profile and edit rego preferences by clicking below. Hint: This is also how you get on short bus.
             </p>
-            <x-button class="py-3 items-center" wire:click="edit">Edit</x-button>
+            <x-button class="py-3 items-center animate-bounce" wire:click="edit">Edit</x-button>
         @endif
 
         @if ($terms_accepted && !$rego_paid_at)
