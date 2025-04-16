@@ -6,71 +6,71 @@
     @script
     <script>
         window.renderButton = function(event, name, price) {
-            const container = document.getElementById('paypal-button-container');
-            if (container === null) {
-                return;
-            }
-            container.innerHTML = '';
+            const tryRender = () => {
+                const container = document.getElementById('paypal-button-container');
+                if (container && container.offsetParent !== null) {
+                    container.innerHTML = '';
 
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        intent: 'CAPTURE',
-                        soft_descriptor: event,
-                        purchase_units: [{
-                            amount: {
-                                currency_code: "USD",
-                                value: price,
-                                breakdown: {
-                                    item_total: {
+                    paypal.Buttons({
+                        createOrder: function(data, actions) {
+                            return actions.order.create({
+                                intent: 'CAPTURE',
+                                soft_descriptor: event,
+                                purchase_units: [{
+                                    amount: {
                                         currency_code: "USD",
                                         value: price,
-                                    }
-                                }
-                            },
-                            items: [{
-                                name: event + " rego for " + name,
-                                quantity: 1,
-                                unit_amount: {
-                                    currency_code: "USD",
-                                    value: price
-                                }
-                            }]
-                        }]
-                    });
-                },
+                                        breakdown: {
+                                            item_total: {
+                                                currency_code: "USD",
+                                                value: price,
+                                            }
+                                        }
+                                    },
+                                    items: [{
+                                        name: event + " rego for " + name,
+                                        quantity: 1,
+                                        unit_amount: {
+                                            currency_code: "USD",
+                                            value: price
+                                        }
+                                    }]
+                                }]
+                            });
+                        },
 
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(details) {
-                        console.log('Transaction completed by ' + details.payer.name.given_name + '!');
-                        $wire.approve(details).then(function () {
-                            container.innerHTML = '';
-                            $wire.$refresh();
-                        });
-                    });
-                },
+                        onApprove: function(data, actions) {
+                            return actions.order.capture().then(function(details) {
+                                console.log('Transaction completed by ' + details.payer.name.given_name + '!');
+                                $wire.approve(details).then(function () {
+                                    container.innerHTML = '';
+                                    $wire.$refresh();
+                                });
+                            });
+                        },
 
-                onCancel: function(data, actions) {
-                    $wire.cancel().then(() => {
-                        console.log("Cancelled");
-                        // container.innerHTML = '';
-                        // $wire.$refresh();
-                    });
-                },
+                        onCancel: function(data, actions) {
+                            $wire.cancel().then(() => {
+                                console.log("Cancelled");
+                                // container.innerHTML = '';
+                                // $wire.$refresh();
+                            });
+                        },
 
-                onError: function(err) {
-                    $wire.error(err).then(function () {
-                        console.log(err);
-                    });
+                        onError: function(err) {
+                            $wire.error(err).then(function () {
+                                console.log(err);
+                            });
+                        }
+                    }).render('#paypal-button-container');
+                } else {
+                    setTimeout(tryRender, 100);
                 }
-            }).render('#paypal-button-container');
+            };
+            tryRender();
         }
 
-        document.addEventListener('livewire:initialized', () => {
-            console.log('livewire:initialized');
-        });
-
-        $wire.on('render-paypal', () => {
+        Livewire.on('render-paypal', () => {
             renderButton($wire.event, $wire.name, $wire.price);
         });
     </script>

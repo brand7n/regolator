@@ -120,7 +120,6 @@ class Paypal extends Component
     public function toggle_bonus()
     {
         $this->bonus_accepted = !$this->bonus_accepted;
-        $this->reinit();
         $this->dispatch('render-paypal');
     }
 
