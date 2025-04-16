@@ -14,23 +14,25 @@ use App\Mail\PaymentConfirmation;
 class Paypal extends Component
 {
     public $key;
-    public $price = 165;
-    public $event = 'NVHHH1900';
+    public $price;
+    public $event;
     public $rego_paid_at;
     public $terms_accepted = false;
     public $bonus_accepted = false;
     public $name;
 
-    function __construct() {
+    function __construct()
+    {
         //parent::__construct();
         $this->key = env('PAYPAL_CLIENT_ID', '');
         $this->rego_paid_at = Auth::user()->rego_paid_at;
-        if ($this->rego_paid_at) {
-            $this->rego_paid_at->setTimezone('US/Eastern');
-        }
-        $this->terms_accepted = session('terms_accepted', false);
-        $this->bonus_accepted = session('bonus_accepted', false);
         $this->name = Auth::user()->name;
+    }
+
+    protected function reinit()
+    {
+        $this->price = 165;
+        $this->event = 'NVHHH1900';
         if ($this->bonus_accepted) {
             $this->price += 115;
             $this->event .= '_PLUS_EH3_32NDANAL';
@@ -39,6 +41,7 @@ class Paypal extends Component
 
     public function render()
     {
+        $this->reinit();
         return view('livewire.paypal');
     }
 
@@ -76,7 +79,6 @@ class Paypal extends Component
                 'order' => $details['id'],
                 'error' => $t,
             ]);
-            return redirect()->to('/user/profile');
         }
 
         if ($response->getStatusCode() === 200) {
@@ -90,8 +92,6 @@ class Paypal extends Component
             ])->log('transaction verified');
 
             $this->send_confirmation();
-
-            return redirect()->to('/user/profile');
         } else {
             Log::error("failed to verify order", [
                 'user' => Auth::user(),
@@ -100,7 +100,6 @@ class Paypal extends Component
                 'response' => $response->getReasonPhrase(),
             ]);
         }
-        return redirect()->to('/dashboard');
     }
 
     public function cancel()
@@ -115,17 +114,23 @@ class Paypal extends Component
 
     public function accept_terms()
     {
-        session(['terms_accepted' => true]);
+        $this->terms_accepted = true;
         activity()->causedBy(Auth::user())->log('terms accepted');
-        return redirect()->to('/dashboard');
+        $this->dispatch('render-paypal');
     }
 
     public function toggle_bonus()
     {
-        session(['bonus_accepted' => !session('bonus_accepted')]);
-        $this->bonus_accepted = session('bonus_accepted');
-        activity()->causedBy(Auth::user())->log('bonus toggled -> ' . $this->bonus_accepted);
-        return redirect()->to('/dashboard');
+        $this->bonus_accepted = !$this->bonus_accepted;
+        $this->reinit();
+        $this->dispatch('render-paypal');
+    }
+
+    // option to decline rego
+    public function decline()
+    {
+        activity()->causedBy(Auth::user())->log('rego declined');
+        return redirect()->to('https://hashrego.com');
     }
 
     public function edit()
@@ -135,7 +140,7 @@ class Paypal extends Component
 
     protected function send_confirmation()
     {
-	$user = Auth::user();
+        $user = Auth::user();
 
         $user_data = json_encode([
             'id' => $user->id,
