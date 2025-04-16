@@ -30,6 +30,8 @@ class encrypt extends Command
      */
     public function handle()
     {
+        // TODO: refresh password for existing users
+        // TODO: log when invite is sent
         $user = new User;
         $user->name = $this->argument('name');
         $user->email = $this->argument('email');
