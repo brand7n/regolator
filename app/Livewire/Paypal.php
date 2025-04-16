@@ -102,12 +102,13 @@ class Paypal extends Component
     public function cancel()
     {
         Log::warning("transaction cancelled", ['user' => Auth::user()]);
-        //$this->handle_payment_success();
+        $this->dispatch('render-paypal');
     }
 
     public function error($err)
     {
         Log::error("transaction error", ['user' => Auth::user(), 'error' => $err]);
+        $this->dispatch('render-paypal');
     }
 
     public function accept_terms()

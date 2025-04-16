@@ -6,11 +6,12 @@
     @script
     <script>
         window.renderButton = function(event, name, price) {
-            const tryRender = () => {
+            requestAnimationFrame(() => {
+	        console.log('tryRender');
                 const container = document.getElementById('paypal-button-container');
                 if (container && container.offsetParent !== null) {
                     container.innerHTML = '';
-
+                    console.log('buttons');
                     paypal.Buttons({
                         createOrder: function(data, actions) {
                             return actions.order.create({
@@ -64,10 +65,10 @@
                         }
                     }).render('#paypal-button-container');
                 } else {
-                    setTimeout(tryRender, 100);
+	            console.log('setTimeout');
+                    //setTimeout(tryRender, 100);
                 }
-            };
-            tryRender();
+            });
         }
 
         Livewire.on('render-paypal', () => {
@@ -112,7 +113,7 @@ I certify I have read this Waiver, I understand it, and I agree to its terms rel
         <x-button class="py-3 items-center bg-red-500 dark:bg-red-500" wire:click="decline">I Cannot Attend</x-button>
         @endif
 
-        <div wire:ignore class="py-4">
+        <div wire:ignore.self class="py-4">
             <div id="paypal-button-container"></div>
         </div>
     </div>
