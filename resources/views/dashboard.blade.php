@@ -1,3 +1,11 @@
+@php
+    use Illuminate\Support\Carbon;
+
+    $now = Carbon::now('America/New_York');
+    $target = Carbon::createFromFormat('Y-m-d H:i:s', '2025-08-01 14:00:00', 'America/New_York');
+    $hoursRemaining = round($now->diffInSeconds($target) / 3600);
+@endphp
+
 <x-app-layout>
     <x-rego-section>
         <x-slot name="title">NVHHH #1900: NITTANY CALLING</x-slot>
@@ -6,7 +14,7 @@
                     <img class="h-96" src="/nittanycalling.jpg" />
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 August 1, 2025 2pm - August 3, 2024 noon</p>
-<div class="animate-bounce font-semibold text-gray-800 dark:text-gray-200">({{ round(((\Illuminate\Support\Carbon::now())->diffInSeconds(new \Illuminate\Support\Carbon('2025-08-01 14:00:00')))/3600) }} hours from now)</div>
+<div class="animate-bounce font-semibold text-gray-800 dark:text-gray-200">({{ $hoursRemaining }} hours from now)</div>
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 <b>PLEASE READ CAREFULLY AS SOME POLICIES HAVE CHANGED</b></p>
 
