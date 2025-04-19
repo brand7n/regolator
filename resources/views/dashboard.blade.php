@@ -1,5 +1,6 @@
 @php
     use Illuminate\Support\Carbon;
+    use Illuminate\Support\Facades\Auth;
 
     $now = Carbon::now('America/New_York');
     $target = Carbon::createFromFormat('Y-m-d H:i:s', '2025-08-01 14:00:00', 'America/New_York');
@@ -42,6 +43,7 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>
         </x-slot>
     </x-rego-section>
+@if(Auth::user()->rego_paid_at === null)
     <x-rego-section>
         <x-slot name="title">YOU'VE UNLOCKED A SPECIAL DEAL</x-slot>
         <x-slot name="content">
@@ -50,6 +52,7 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
             </p>
         </x-slot>
     </x-rego-section>
+@endif
     <x-rego-section>
         <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">
