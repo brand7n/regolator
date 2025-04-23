@@ -7,13 +7,13 @@
     <script>
         window.renderButton = function(event, name, price) {
             requestAnimationFrame(() => {
-	        console.log('tryRender');
                 const container = document.getElementById('paypal-button-container');
                 if (container && container.offsetParent !== null) {
                     container.innerHTML = '';
-                    console.log('buttons');
+
                     paypal.Buttons({
                         createOrder: function(data, actions) {
+                            console.log("Creating order...");
                             return actions.order.create({
                                 intent: 'CAPTURE',
                                 soft_descriptor: event,
@@ -37,6 +37,10 @@
                                         }
                                     }]
                                 }]
+                            }).then(function(orderID) {
+                                console.log("Order created: ", orderID);
+                                $wire.storeOrderID(orderID);
+                                return orderID;
                             });
                         },
 
@@ -53,8 +57,6 @@
                         onCancel: function(data, actions) {
                             $wire.cancel().then(() => {
                                 console.log("Cancelled");
-                                // container.innerHTML = '';
-                                // $wire.$refresh();
                             });
                         },
 
@@ -64,9 +66,6 @@
                             });
                         }
                     }).render('#paypal-button-container');
-                } else {
-	            console.log('setTimeout');
-                    //setTimeout(tryRender, 100);
                 }
             });
         }
