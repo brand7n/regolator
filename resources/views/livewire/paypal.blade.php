@@ -38,8 +38,9 @@
                                     }]
                                 }]
                             }).then(function(orderID) {
-                                console.log("Order created: ", orderID);
-                                $wire.storeOrderID(orderID);
+                                $wire.setOrderID(orderID).then(function () {
+                                    console.log("Order stored: ", orderID);
+                                })
                                 return orderID;
                             });
                         },

@@ -45,13 +45,14 @@ class Paypal extends Component
         return view('livewire.paypal');
     }
 
-    public function storeOrderID($orderId)
+    public function setOrderID($orderID)
     {
         activity()->causedBy(Auth::user())->withProperties([
             'event' => $this->event,
-            'transaction' => $orderId,
+            'transaction' => $orderID,
         ])->log('order created');
-        Log::info('order created', ['user' => Auth::user(), 'order' => $orderId]);
+        Log::info('order created', ['user' => Auth::user(), 'order' => $orderID]);
+        $this->skipRender();
     }
 
     public function approve($details)
