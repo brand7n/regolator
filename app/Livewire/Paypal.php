@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentConfirmation;
+use App\Models\Order;
 
 class Paypal extends Component
 {
@@ -52,6 +53,12 @@ class Paypal extends Component
             'transaction' => $orderID,
         ])->log('order created');
         Log::info('order created', ['user' => Auth::user(), 'order' => $orderID]);
+
+        $order = new Order();
+        $order->user()->associate(Auth::user());
+        $order->order_id = $orderID;
+        $order->save();
+
         $this->skipRender();
     }
 

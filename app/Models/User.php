@@ -11,6 +11,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Models\Order;
 
 class User extends Authenticatable
 {
@@ -82,4 +83,9 @@ class User extends Authenticatable
         'shirt_size' => 'MD',
         'short_bus' => 'N',
     ];
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }
