@@ -12,6 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -84,7 +85,7 @@ class User extends Authenticatable
         'short_bus' => 'N',
     ];
 
-    public function orders()
+    public function orders() : HasMany
     {
         return $this->hasMany(Order::class);
     }

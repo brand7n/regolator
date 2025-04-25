@@ -13,6 +13,7 @@ class DeleteUser implements DeletesUsers
     public function delete(User $user): void
     {
         $user->deleteProfilePhoto();
+        /** @phpstan-ignore property.notFound */
         $user->tokens->each->delete();
         $user->delete();
     }

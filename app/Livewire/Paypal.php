@@ -7,9 +7,7 @@ use Livewire\Component;
 use GuzzleHttp\Client;
 use Auth;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\PaymentConfirmation;
+use App\Models\User;
 use App\Models\Order;
 
 class Paypal extends Component
@@ -25,9 +23,11 @@ class Paypal extends Component
     function __construct()
     {
         //parent::__construct();
-        $this->key = env('PAYPAL_CLIENT_ID', '');
-        $this->rego_paid_at = Auth::user()->rego_paid_at;
-        $this->name = Auth::user()->name;
+        $this->key = config('services.paypal.client_id');
+        /** @var User $user */
+        $user = Auth::user();
+        $this->rego_paid_at = $user->rego_paid_at;
+        $this->name = $user->name;
     }
 
     protected function reinit()
@@ -64,55 +64,21 @@ class Paypal extends Component
 
     public function approve($details)
     {
-        Log::info('transaction approved', ['user' => Auth::user(), 'details' => $details]);
+        Log::info('on approve callback', ['user' => Auth::user(), 'details' => $details]);
 
-        try {
-            $client = new Client();
+        /** @var User $user */
+        $user = Auth::user();
+        $order = Order::where('user_id', $user->id)
+            ->where('order_id', $details['id'])
+            ->first();
 
-            $response = $client->post('https://api-m.paypal.com/v1/oauth2/token', [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded'
-                ],
-                'auth' => [
-                    env('PAYPAL_CLIENT_ID', ''),
-                    env('PAYPAL_CLIENT_SECRET', '')
-                ],
-                'form_params' => [
-                    'grant_type' => 'client_credentials'
-                ]
-            ]);
-
-            $bearer_token = json_decode($response->getBody(), true)['access_token'];
-
-            $response = $client->get('https://api.paypal.com/v2/checkout/orders/' . $details['id'], [
-                'headers' => [
-                    'Accept'        => 'application/json',
-                    'Authorization' => 'Bearer ' . $bearer_token 
-                ]
-            ]);
-        } catch (\Throwable $t) {
-            Log::error("failed to verify order", [
-                'user' => Auth::user(),
-                'order' => $details['id'],
-                'error' => $t,
-            ]);
+        if (!$order) {
+            Log::error('no order found', ['user' => Auth::user(), 'order_id' => $details['id']]);
+            return;  
         }
 
-        if ($response->getStatusCode() === 200) {
-            activity()->causedBy(Auth::user())->withProperties([
-                'event' => $this->event,
-                'transaction' => $details['id'],
-                'data' => $response->getBody()->getContents()
-            ])->log('transaction verified');
-
-            $this->handle_payment_success();
-        } else {
-            Log::error("failed to verify order", [
-                'user' => Auth::user(),
-                'order' => $details['id'],
-                'code' => $response->getStatusCode(),
-                'response' => $response->getReasonPhrase(),
-            ]);
+        if ($order->verify()) {
+            $this->rego_paid_at = Carbon::now();
         }
     }
 
@@ -151,31 +117,5 @@ class Paypal extends Component
     public function edit()
     {
         return redirect()->to('/user/profile');
-    }
-
-    protected function handle_payment_success()
-    {
-        $user = Auth::user();
-
-        // save payment time
-        $this->rego_paid_at = Carbon::now();
-        $user->rego_paid_at = $this->rego_paid_at;
-        $user->save();
-
-        // send confirmation email
-        $user_data = json_encode([
-            'id' => $user->id,
-            'hash' => $user->password,
-        ]);
-        $quick_login = Crypt::encryptString($user_data);
-
-        try {
-            Mail::to($user)->send(new PaymentConfirmation($user, url('/quicklogin/' . $quick_login)));
-        } catch (\Throwable $t) {
-            Log::error("failed to send payment confirmation email", [
-                'user' => $user,
-                'error' => $t,
-            ]);
-        }
     }
 }
