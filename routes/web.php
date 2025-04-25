@@ -19,6 +19,9 @@ Route::middleware([
     Route::get('/activity', function () {
         return view('activity');
     })->name('activity');
+    Route::get('/users', function () {
+        return view('users');
+    })->name('users');
 });
 
 Route::get('quicklogin/{key}', function($key) {

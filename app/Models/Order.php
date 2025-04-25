@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
@@ -54,12 +53,12 @@ class Order extends Model
             $response = $client->get('https://api.paypal.com/v2/checkout/orders/' . $this->order_id, [
                 'headers' => [
                     'Accept'        => 'application/json',
-                    'Authorization' => 'Bearer ' . $bearer_token 
+                    'Authorization' => 'Bearer ' . $bearer_token
                 ]
             ]);
 
             if ($response->getStatusCode() === 200) {
-                activity()->causedBy(Auth::user())->withProperties([
+                activity()->causedBy($this->user)->withProperties([
                     //'event' => $event,
                     'transaction' => $this->order_id,
                     'data' => $response->getBody()->getContents()
@@ -69,7 +68,7 @@ class Order extends Model
                 return true;
             } else {
                 Log::error("failed to verify order", [
-                    'user' => Auth::user(),
+                    'user' => $this->user,
                     'order' => $this->order_id,
                     'code' => $response->getStatusCode(),
                     'response' => $response->getReasonPhrase(),
@@ -77,7 +76,7 @@ class Order extends Model
             }
         } catch (\Throwable $t) {
             Log::error("failed to verify order", [
-                'user' => Auth::user(),
+                'user' => $this->user,
                 'order' => $this->order_id,
                 'error' => $t->getMessage(),
             ]);
@@ -90,7 +89,7 @@ class Order extends Model
         $now = Carbon::now();
 
         $this->verified_at = $now;
-        $this->save(); 
+        $this->save();
 
         /** @var User $user */
         $user = $this->user;
@@ -111,6 +110,6 @@ class Order extends Model
                 'user' => $user,
                 'error' => $t->getMessage(),
             ]);
-        } 
+        }
     }
 }

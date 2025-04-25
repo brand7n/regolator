@@ -74,7 +74,7 @@ class Paypal extends Component
 
         if (!$order) {
             Log::error('no order found', ['user' => Auth::user(), 'order_id' => $details['id']]);
-            return;  
+            return;
         }
 
         if ($order->verify()) {

@@ -13,6 +13,7 @@ class Regos extends Component
 
     function __construct()
     {
+        //parent::__construct();
         $this->regos = collect();
         $this->order = 'name';
 
