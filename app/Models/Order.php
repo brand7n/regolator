@@ -23,11 +23,18 @@ class Order extends Model
     {
         return [
             'verified_at' => 'datetime',
+            'status' => OrderStatus::class,
         ];
     }
 
-    public function user() : BelongsTo {
+    public function user() : BelongsTo
+    {
         return $this->belongsTo(User::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
     }
 
     public function verify() : bool

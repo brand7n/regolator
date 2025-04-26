@@ -7,18 +7,19 @@ use Livewire\Component;
 use GuzzleHttp\Client;
 use Auth;
 use Illuminate\Support\Carbon;
-use App\Models\User;
-use App\Models\Order;
+use App\Models\{User, Order, OrderStatus, Event};
 
 class Paypal extends Component
 {
     public $key;
     public $price;
-    public $event;
+    public string $event_tag;
     public $rego_paid_at;
     public $terms_accepted = false;
     public $bonus_accepted = false;
     public $name;
+
+    protected Event $event;
 
     function __construct()
     {
@@ -28,15 +29,17 @@ class Paypal extends Component
         $user = Auth::user();
         $this->rego_paid_at = $user->rego_paid_at;
         $this->name = $user->name;
+        $this->event = Event::find(1);
     }
 
     protected function reinit()
     {
         $this->price = 165;
-        $this->event = 'NVHHH1900';
+        // TODO: derive from event object
+        $this->event_tag = 'NVHHH1900';
         if ($this->bonus_accepted) {
             $this->price += 115;
-            $this->event .= '_PLUS_EH3_32NDANAL';
+            $this->event_tag .= '_PLUS_EH3_32NDANAL';
         }
     }
 
@@ -54,10 +57,30 @@ class Paypal extends Component
         ])->log('order created');
         Log::info('order created', ['user' => Auth::user(), 'order' => $orderID]);
 
-        $order = new Order();
-        $order->user()->associate(Auth::user());
-        $order->order_id = $orderID;
-        $order->save();
+        /** @var User $user */
+        $user = Auth::user();
+        $order = Order::where('status', OrderStatus::Accepted->value)
+            ->where('event_id', $this->event->id)
+            ->where('user_id', $user->id)
+            ->whereNull('verified_at')
+            ->first();
+        //$order = new Order();
+        //$order->user()->associate(Auth::user());
+
+        if ($order) {
+            $order->order_id = $orderID;
+            $order->status = OrderStatus::PaypalPending->value;
+            $order->save();
+        } else {
+            Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
+            // TODO: create new order as a backstop...need to remove this!!!
+            $order = new Order();
+            $order->user()->associate(Auth::user());
+            $order->event()->associate($this->event);
+            $order->order_id = $orderID;
+            $order->status = OrderStatus::PaypalPending->value;
+            $order->save();
+        }
 
         $this->skipRender();
     }

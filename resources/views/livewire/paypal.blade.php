@@ -72,7 +72,7 @@
         }
 
         Livewire.on('render-paypal', () => {
-            renderButton($wire.event, $wire.name, $wire.price);
+            renderButton($wire.event_tag, $wire.name, $wire.price);
         });
     </script>
     @endscript
