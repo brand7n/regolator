@@ -34,9 +34,9 @@ class Paypal extends Component
 
     protected function reinit()
     {
-        $this->price = 165;
-        // TODO: derive from event object
-        $this->event_tag = 'NVHHH1900';
+        $this->price = $this->event->base_price_in_dollars;
+        $this->event_tag = $this->event->event_tag;
+        // TODO: derive from event options
         if ($this->bonus_accepted) {
             $this->price += 115;
             $this->event_tag .= '_PLUS_EH3_32NDANAL';

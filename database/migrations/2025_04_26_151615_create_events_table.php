@@ -24,6 +24,8 @@ return new class extends Migration
             $table->json('properties')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->boolean('private')->default(true);
+            $table->string('event_tag')->nullable();
+            $table->integer('base_price'); // price in cents
         });
 
         Schema::table('orders', function (Blueprint $table) {

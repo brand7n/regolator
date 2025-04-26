@@ -19,6 +19,8 @@ class EventSeeder extends Seeder
             'kennel' => 'Nittany Valley Hash House Harriers',
             'description' => 'markdown goes here',
             'created_by' => 22,
+            'event_tag' => 'NVHHH1900',
+            'base_price' => 16500,
         ]);
     }
 }
