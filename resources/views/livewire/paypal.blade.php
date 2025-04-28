@@ -1,6 +1,6 @@
 <div class="flex justify-center">
     @assets
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $key }}&disable-funding=credit,card"></script>
+    <script src="https://www.{{ $sandbox }}paypal.com/sdk/js?client-id={{ $key }}&disable-funding=credit,card"></script>
     @endassets
 
     @script

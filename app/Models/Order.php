@@ -39,10 +39,11 @@ class Order extends Model
 
     public function verify() : bool
     {
+        $sandbox = config('services.paypal.sandbox');
         try {
             $client = new Client();
 
-            $response = $client->post('https://api-m.paypal.com/v1/oauth2/token', [
+            $response = $client->post("https://api-m.{$sandbox}paypal.com/v1/oauth2/token", [
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded'
                 ],
@@ -57,7 +58,7 @@ class Order extends Model
 
             $bearer_token = json_decode($response->getBody(), true)['access_token'];
 
-            $response = $client->get('https://api.paypal.com/v2/checkout/orders/' . $this->order_id, [
+            $response = $client->get("https://api.{$sandbox}paypal.com/v2/checkout/orders/" . $this->order_id, [
                 'headers' => [
                     'Accept'        => 'application/json',
                     'Authorization' => 'Bearer ' . $bearer_token
@@ -96,6 +97,7 @@ class Order extends Model
         $now = Carbon::now();
 
         $this->verified_at = $now;
+        $this->status = OrderStatus::PaymentVerified->value;
         $this->save();
 
         /** @var User $user */

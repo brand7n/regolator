@@ -18,6 +18,7 @@ class Paypal extends Component
     public $terms_accepted = false;
     public $bonus_accepted = false;
     public $name;
+    public string $sandbox;
 
     protected Event $event;
 
@@ -25,6 +26,7 @@ class Paypal extends Component
     {
         //parent::__construct();
         $this->key = config('services.paypal.client_id');
+        $this->sandbox = config('services.paypal.sandbox');
         /** @var User $user */
         $user = Auth::user();
         $this->rego_paid_at = $user->rego_paid_at;
