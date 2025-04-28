@@ -31,6 +31,7 @@ class Paypal extends Component
         $user = Auth::user();
         $this->rego_paid_at = $user->rego_paid_at;
         $this->name = $user->name;
+        // TODO: lookup actual event when there's eventually more than one
         $this->event = Event::find(1);
     }
 
@@ -61,13 +62,12 @@ class Paypal extends Component
 
         /** @var User $user */
         $user = Auth::user();
-        $order = Order::where('status', OrderStatus::Accepted->value)
+        // TODO: accepted
+        $order = Order::whereIn('status', [OrderStatus::Invited->value, OrderStatus::PaypalPending->value])
             ->where('event_id', $this->event->id)
             ->where('user_id', $user->id)
             ->whereNull('verified_at')
             ->first();
-        //$order = new Order();
-        //$order->user()->associate(Auth::user());
 
         if ($order) {
             $order->order_id = $orderID;
@@ -75,13 +75,6 @@ class Paypal extends Component
             $order->save();
         } else {
             Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
-            // TODO: create new order as a backstop...need to remove this!!!
-            $order = new Order();
-            $order->user()->associate(Auth::user());
-            $order->event()->associate($this->event);
-            $order->order_id = $orderID;
-            $order->status = OrderStatus::PaypalPending->value;
-            $order->save();
         }
 
         $this->skipRender();
@@ -109,12 +102,14 @@ class Paypal extends Component
 
     public function cancel()
     {
+        // TODO: set order to accepted and clear order ID
         Log::warning("transaction cancelled", ['user' => Auth::user()]);
         $this->dispatch('render-paypal');
     }
 
     public function error($err)
     {
+        // TODO: set order to accepted and clear order ID
         Log::error("transaction error", ['user' => Auth::user(), 'error' => $err]);
         $this->dispatch('render-paypal');
     }

@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Log;
 
 // Artisan::command('inspire', function () {
 //     $this->comment(Inspiring::quote());
@@ -13,15 +14,10 @@ Schedule::call(function () {
         ->where('status', \App\Models\OrderStatus::PaypalPending->value)
         ->get();
     foreach ($orders as $order) {
-        $order->verify();
-
-        // update stale orders that will never be verified
-        // TODO: is this necessary?
-        $order->refresh();
-        if ($order->modified_at->diffInHours() > 1.0 
-            && $order->status == \App\Models\OrderStatus::PaypalPending->value) {
-            $order->status = \App\Models\OrderStatus::Accepted->value;
-            $order->save();
+        if ($order->modified_at->diffInHours() < 1.0) {
+            $order->verify();
+        } else {
+            Log::warning('Not attempting to verify order: ' . $order->order_id);
         }
     }
 })->everyFiveMinutes();

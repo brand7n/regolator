@@ -70,19 +70,18 @@ class Order extends Model
 
                 if (isset($data['status']) && $data['status'] === 'COMPLETED') {
                     activity()
+                        ->performedOn($this)
                         ->causedBy($this->user)
-                        ->withProperties([
-                            'order' => $this,
-                            'data' => $data,
-                        ])
+                        ->withProperties(['data' => $data])
                         ->log('transaction verified');
                     $this->handle_payment_success();
                     return true;
                 } else {
-                    activity()->causedBy($this->user)->withProperties([
-                        'order' => $this,
-                        'data' => $data,
-                    ])->log('transaction retrieved');
+                    activity()
+                        ->performedOn($this)
+                        ->causedBy($this->user)
+                        ->withProperties(['data' => $data])
+                        ->log('transaction retrieved');
                 }
             } else {
                 Log::error("failed to verify order", [
