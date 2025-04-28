@@ -11,9 +11,19 @@ use Illuminate\Support\Facades\Mail;
 use GuzzleHttp\Client;
 use App\Mail\PaymentConfirmation;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Order extends Model
 {
+    use LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
+
     /**
      * Get the attributes that should be cast.
      *
