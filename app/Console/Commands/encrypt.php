@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
-use App\Models\User;
+use App\Models\{User, Order, OrderStatus};
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RegoInvite;
 
@@ -39,6 +39,12 @@ class encrypt extends Command
         $user->password = $actual_password;
         $user->save();
         
+        $order = new Order;
+        $order->user_id = $user->id;
+        $order->event_id = 1;
+        $order->status = OrderStatus::Invited->value;
+        $order->save();
+
         $user_data = json_encode([
             'id' => $user->id,
             'hash' => $user->password,
