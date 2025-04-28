@@ -66,26 +66,34 @@ class Order extends Model
             ]);
 
             if ($response->getStatusCode() === 200) {
-                activity()->causedBy($this->user)->withProperties([
-                    //'event' => $event,
-                    'transaction' => $this->order_id,
-                    'data' => $response->getBody()->getContents()
-                ])->log('transaction verified');
+                $data = json_decode($response->getBody()->getContents(), true);
 
-                $this->handle_payment_success();
-                return true;
+                if (isset($data['status']) && $data['status'] === 'COMPLETED') {
+                    activity()
+                        ->causedBy($this->user)
+                        ->withProperties([
+                            'order' => $this,
+                            'data' => $data,
+                        ])
+                        ->log('transaction verified');
+                    $this->handle_payment_success();
+                    return true;
+                } else {
+                    activity()->causedBy($this->user)->withProperties([
+                        'order' => $this,
+                        'data' => $data,
+                    ])->log('transaction retrieved');
+                }
             } else {
                 Log::error("failed to verify order", [
-                    'user' => $this->user,
-                    'order' => $this->order_id,
+                    'order' => $this,
                     'code' => $response->getStatusCode(),
                     'response' => $response->getReasonPhrase(),
                 ]);
             }
         } catch (\Throwable $t) {
             Log::error("failed to verify order", [
-                'user' => $this->user,
-                'order' => $this->order_id,
+                'order' => $this,
                 'error' => $t->getMessage(),
             ]);
         }
