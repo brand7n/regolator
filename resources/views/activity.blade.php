@@ -4,8 +4,8 @@
 
     $logs = DB::table('activity_log')
         ->leftJoin('users', function ($join) {
-            $join->on('activity_log.subject_id', '=', 'users.id')
-                 ->orOn('activity_log.causer_id', '=', 'users.id');
+            $join->on('activity_log.causer_id', '=', 'users.id')
+                 ->on('activity_log.causer_type', '=', 'App\Models\User');
         })
         ->select('users.name', 'activity_log.description', 'activity_log.created_at')
         ->orderBy('activity_log.created_at', 'desc')
