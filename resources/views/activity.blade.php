@@ -3,11 +3,16 @@
     use Illuminate\Support\Facades\DB;
 
     $logs = DB::table('activity_log')
-        ->leftJoin('users', function ($join) {
-            $join->on('activity_log.causer_id', '=', 'users.id')
+        ->leftJoin('users as c', function ($join) {
+            $join->on('activity_log.causer_id', '=', 'c.id')
                  ->on('activity_log.causer_type', '=', 'App\Models\User');
         })
-        ->select('users.name', 'activity_log.description', 'activity_log.created_at')
+        ->leftJoin('users as s', function ($join) {
+            $join->on('activity_log.subject_id', '=', 's.id')
+                 ->on('activity_log.subject_type', '=', 'App\Models\User');
+        })
+        ->select('c.name as causer', 's.name as subject', 'activity_log.description', 'activity_log.created_at')
+        ->where('activity_log.created_at', '>=', Carbon::now()->subMonth())
         ->orderBy('activity_log.created_at', 'desc')
         ->get();
 @endphp
@@ -30,7 +35,7 @@
                 <tbody class="text-sm text-gray-800 dark:text-gray-200 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse ($logs as $log)
                         <tr>
-                            <td class="px-4 py-3">{{ $log->name ?? 'Unknown' }}</td>
+                            <td class="px-4 py-3">{{ ($log->causer ?? $log->subject) ?? 'Unknown' }}</td>
                             <td class="px-4 py-3">{{ $log->description }}</td>
                             <td class="px-4 py-3">{{ \Carbon\Carbon::parse($log->created_at)->timezone('America/New_York')->format('Y-m-d h:i A') }}</td>
                         </tr>
