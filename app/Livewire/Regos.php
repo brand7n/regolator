@@ -39,7 +39,7 @@ class Regos extends Component
         }
 
         $verifiedUsers = DB::table('users')
-            ->join('orders', function ($join) { 
+            ->join('orders', function ($join) {
                 $join->on('users.id', '=', 'orders.user_id')
                      ->where('orders.event_id', '=', $this->event_id)
                      ->where('orders.status', '=', 'PAYMENT_VERIFIED');
