@@ -20,13 +20,13 @@ class Regos extends Component
 
     protected array $sortable = ['rego_paid_at', 'name', 'kennel'];
 
-    function mount()
+    public function mount(int $eventId)
     {
         $this->regos = collect();
         $this->orderby = 'rego_paid_at';
         $this->direction = 'asc';
         $this->max = 130;
-        $this->event_id = 1;
+        $this->event_id = $eventId;
     }
 
     public function render()

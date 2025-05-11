@@ -14,29 +14,32 @@ class Paypal extends Component
     public $key;
     public $price;
     public string $event_tag;
-    public $rego_paid_at;
+    public ?Carbon $rego_paid_at = null;
     public $terms_accepted = false;
     public $bonus_accepted = false;
     public $name;
     public string $sandbox;
 
-    protected Event $event;
+    public ?Event $event = null;
 
-    function __construct()
+    public function mount(int $eventId)
     {
-        //parent::__construct();
+        Log::info('on mount', ['event' => $eventId]);
         $this->key = config('services.paypal.client_id');
         $this->sandbox = config('services.paypal.sandbox');
         /** @var User $user */
         $user = Auth::user();
-        $this->rego_paid_at = $user->rego_paid_at;
         $this->name = $user->name;
-        // TODO: lookup actual event when there's eventually more than one
-        $this->event = Event::find(1);
+        $this->event = Event::findOrFail($eventId);
+        //$this->rego_paid_at = $this->event->regoPaidAt($user);
+        Log::info('event', ['event' => $this->event]);
     }
 
     protected function reinit()
     {
+        if (!$this->event) {
+            return;
+        }
         $this->price = $this->event->base_price_in_dollars;
         $this->event_tag = $this->event->event_tag;
         // TODO: derive from event options
@@ -44,6 +47,10 @@ class Paypal extends Component
             $this->price += 115;
             $this->event_tag .= '_PLUS_EH3_32NDANAL';
         }
+        /** @var User $user */
+        $user = Auth::user();
+        $this->rego_paid_at = $this->event->regoPaidAt($user);
+        Log::info('reinit', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
     }
 
     public function render()
@@ -71,7 +78,7 @@ class Paypal extends Component
 
         if ($order) {
             $order->order_id = $orderID;
-            $order->status = OrderStatus::PaypalPending->value;
+            $order->status = OrderStatus::PaypalPending;
             $order->save();
         } else {
             Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
@@ -80,6 +87,7 @@ class Paypal extends Component
         $this->skipRender();
     }
 
+    // TODO: sometimes this doesn't get called...what will the page do?
     public function approve($details)
     {
         Log::info('on approve callback', ['user' => Auth::user(), 'details' => $details]);

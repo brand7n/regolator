@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Carbon\Carbon;
+use App\Models\{User, Order, OrderStatus};
+use Illuminate\Support\Facades\Log;
 
 class Event extends Model
 {
@@ -39,5 +42,18 @@ class Event extends Model
     public function orders() : HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function regoPaidAt(User $user) : ?Carbon
+    {
+        $order = Order::where('user_id', $user->id)
+            ->where('event_id', $this->id)
+            ->first();
+        if ($order && $order->status === OrderStatus::PaymentVerified) {
+            Log::info('regoPaidAt good: ', ['paid_at' => $order->verified_at]);
+            return $order->verified_at;
+        }
+        Log::info('regoPaidAt bad: ', ['order' => $order]);
+        return null;
     }
 }

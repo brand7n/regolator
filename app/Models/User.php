@@ -13,6 +13,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -70,7 +71,6 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'rego_paid_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -84,6 +84,8 @@ class User extends Authenticatable
         'shirt_size' => 'MD',
         'short_bus' => 'N',
     ];
+
+    public ?Carbon $rego_paid_at = null;
 
     public function orders() : HasMany
     {

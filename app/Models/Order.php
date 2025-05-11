@@ -114,13 +114,11 @@ class Order extends Model
         $now = Carbon::now();
 
         $this->verified_at = $now;
-        $this->status = OrderStatus::PaymentVerified->value;
+        $this->status = OrderStatus::PaymentVerified;
         $this->save();
 
         /** @var User $user */
         $user = $this->user;
-        $user->rego_paid_at = $now;
-        $user->save();
 
         // send confirmation email
         $user_data = json_encode([

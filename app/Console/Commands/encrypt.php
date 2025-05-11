@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
-use App\Models\{User, Order, OrderStatus};
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RegoInvite;
 
@@ -30,8 +30,6 @@ class encrypt extends Command
      */
     public function handle()
     {
-        // TODO: refresh password for existing users
-        // TODO: log when invite is sent
         $user = new User;
         $user->name = $this->argument('name');
         $user->email = $this->argument('email');
@@ -39,12 +37,6 @@ class encrypt extends Command
         $user->password = $actual_password;
         $user->save();
         
-        $order = new Order;
-        $order->user_id = $user->id;
-        $order->event_id = 1;
-        $order->status = OrderStatus::Invited->value;
-        $order->save();
-
         $user_data = json_encode([
             'id' => $user->id,
             'hash' => $user->password,
@@ -53,7 +45,5 @@ class encrypt extends Command
 
         $this->info('Actual password: ' . $actual_password);
         $this->info('Quick login: ' . $quick_login);
-
-        Mail::to($user)->send(new RegoInvite($user, url('/quicklogin/' . $quick_login)));
     }
 }

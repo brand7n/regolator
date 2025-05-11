@@ -43,7 +43,7 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>
         </x-slot>
     </x-rego-section>
-@if(Auth::user()->rego_paid_at === null)
+@if(\App\Models\Event::findOrFail(1)->regoPaidAt(Auth::user()) === null)
     <x-rego-section>
         <x-slot name="title">YOU'VE UNLOCKED A SPECIAL DEAL</x-slot>
         <x-slot name="content">
@@ -56,13 +56,13 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     <x-rego-section>
         <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">
-            <livewire:paypal />
+            <livewire:paypal event-id="1" />
         </x-slot>
     </x-rego-section>
     <x-rego-section>
         <x-slot name="title">OH LAWD THEY COMIN'</x-slot>
         <x-slot name="content">
-            <livewire:regos />
+            <livewire:regos event-id="1" />
         </x-slot>
     </x-rego-section>
 </x-app-layout>
