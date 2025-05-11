@@ -26,7 +26,7 @@ class SendEmails extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Sends an invite email to the user';
 
     /**
      * Execute the console command.
@@ -66,7 +66,7 @@ class SendEmails extends Command
                     'event' => Event::findOrFail(1),
                     'order' => $order,
                 ])
-                ->log('Sent Rego invite');
+                ->log('sent rego invite');
         } catch (\Throwable $t) {
             Log::error("failed to send email", [
                 'user' => $user,
