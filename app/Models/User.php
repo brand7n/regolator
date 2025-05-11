@@ -14,6 +14,7 @@ use Spatie\Activitylog\LogOptions;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 
 class User extends Authenticatable
 {
@@ -85,10 +86,30 @@ class User extends Authenticatable
         'short_bus' => 'N',
     ];
 
+    // fake attribute since it's not in the database anymore
     public ?Carbon $rego_paid_at = null;
 
     public function orders() : HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function getQuickLogin() : string
+    {
+        $user_data = json_encode([
+            'id' => $this->id,
+            'hash' => $this->password,
+        ]);
+        return Crypt::encryptString($user_data);
+    }
+
+    public static function fromQuickLogin(string $quick_login) : ?User
+    {
+        $user_data = json_decode(Crypt::decryptString($quick_login), true);
+        $user = User::where('id', $user_data['id'])->first();
+        if ($user->password === $user_data['hash']) {
+            return $user;
+        }
+        return null;
     }
 }

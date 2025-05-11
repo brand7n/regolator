@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -37,11 +36,7 @@ class encrypt extends Command
         $user->password = $actual_password;
         $user->save();
         
-        $user_data = json_encode([
-            'id' => $user->id,
-            'hash' => $user->password,
-        ]);
-        $quick_login = Crypt::encryptString($user_data);
+        $quick_login = $user->getQuickLogin();
 
         $this->info('Actual password: ' . $actual_password);
         $this->info('Quick login: ' . $quick_login);

@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\User;
@@ -39,11 +38,7 @@ class SendEmails extends Command
             $this->error('User not found');
             return;
         }
-        $user_data = json_encode([
-            'id' => $user->id,
-            'hash' => $user->password,
-        ]);
-        $quick_login = Crypt::encryptString($user_data);
+        $quick_login = $user->getQuickLogin();
 
         $order = Order::where('user_id', $user->id)->where('event_id', 1)->first();
         if (!$order) {
@@ -53,6 +48,11 @@ class SendEmails extends Command
             $order->event_id = 1;
             $order->status = OrderStatus::Invited;
             $order->save();
+            return;
+        }
+
+        if ($order->status == OrderStatus::Cancelled || $order->status == OrderStatus::PaymentVerified) {
+            $this->error('User has already been cancelled or has paid up');
             return;
         }
 
