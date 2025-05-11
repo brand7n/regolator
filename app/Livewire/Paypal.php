@@ -24,38 +24,38 @@ class Paypal extends Component
 
     public function mount(int $eventId)
     {
-        Log::info('on mount', ['event' => $eventId]);
         $this->key = config('services.paypal.client_id');
         $this->sandbox = config('services.paypal.sandbox');
+
         /** @var User $user */
         $user = Auth::user();
         $this->name = $user->name;
+
         $this->event = Event::findOrFail($eventId);
-        //$this->rego_paid_at = $this->event->regoPaidAt($user);
-        Log::info('event', ['event' => $this->event]);
+
+        Log::info('mount', ['event' => $this->event]);
     }
 
-    protected function reinit()
+    protected function render()
     {
         if (!$this->event) {
             return;
         }
+
         $this->price = $this->event->base_price_in_dollars;
         $this->event_tag = $this->event->event_tag;
+
         // TODO: derive from event options
         if ($this->bonus_accepted) {
             $this->price += 115;
             $this->event_tag .= '_PLUS_EH3_32NDANAL';
         }
+
         /** @var User $user */
         $user = Auth::user();
         $this->rego_paid_at = $this->event->regoPaidAt($user);
-        Log::info('reinit', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
-    }
 
-    public function render()
-    {
-        $this->reinit();
+        Log::info('render', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
         return view('livewire.paypal');
     }
 
