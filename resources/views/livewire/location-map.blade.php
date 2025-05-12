@@ -20,7 +20,9 @@
 
             const icon = L.icon({
                 iconUrl: "{{ asset('leaflet/images/marker-icon.png') }}",
-                shadowUrl: "{{ asset('leaflet/images/marker-shadow.png') }}"
+                shadowUrl: "{{ asset('leaflet/images/marker-shadow.png') }}",
+                iconAnchor: [11, 41],
+                popupAnchor: [0, -41],
             });
             L.marker([{{ $markers[0]['lat'] }}, {{ $markers[0]['lng'] }}], { icon: icon }).addTo(map).bindPopup(location).openPopup();
         };
