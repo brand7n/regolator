@@ -54,6 +54,12 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </x-rego-section>
 @endif
     <x-rego-section>
+        <x-slot name="title">LOCATION</x-slot>
+        <x-slot name="content">
+            <livewire:location-map event-id="1" />
+        </x-slot>
+    </x-rego-section>
+    <x-rego-section>
         <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">
             <livewire:paypal event-id="1" />
