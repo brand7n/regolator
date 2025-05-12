@@ -15,6 +15,7 @@ use App\Models\Order;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -105,10 +106,14 @@ class User extends Authenticatable
 
     public static function fromQuickLogin(string $quick_login) : ?User
     {
-        $user_data = json_decode(Crypt::decryptString($quick_login), true);
-        $user = User::where('id', $user_data['id'])->first();
-        if ($user->password === $user_data['hash']) {
-            return $user;
+        try {
+            $user_data = json_decode(Crypt::decryptString($quick_login), true);
+            $user = User::where('id', $user_data['id'])->first();
+            if ($user->password === $user_data['hash']) {
+                return $user;
+            }
+        } catch (\Exception $e) {
+            Log::error("error processing quick login: " . $e->getMessage());
         }
         return null;
     }

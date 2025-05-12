@@ -36,7 +36,7 @@ class Paypal extends Component
         Log::info('mount', ['event' => $this->event]);
     }
 
-    protected function render()
+    public function render()
     {
         if (!$this->event) {
             return;

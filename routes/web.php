@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Carbon;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
@@ -27,7 +27,10 @@ Route::middleware([
     })->name('users');
 });
 
-Route::get('quicklogin/{key}', function($key) {
+Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
     $user = User::fromQuickLogin($key);
     if ($user) {
         Auth::login($user); // login user automatically
@@ -35,8 +38,8 @@ Route::get('quicklogin/{key}', function($key) {
         $user->email_verified_at = Carbon::now();
         $user->save();
         return redirect('dashboard');
-
     }
+    abort(403, 'Invalid or expired login link.');
 });
 
 Route::get('/waiting', function () {
