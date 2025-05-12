@@ -18,7 +18,11 @@
                 Livewire.dispatch('addMarker', e.latlng.lat, e.latlng.lng);
             });
 
-            L.marker([{{ $markers[0]['lat'] }}, {{ $markers[0]['lng'] }}]).addTo(map).bindPopup(location).openPopup();
+            const icon = L.icon({
+                iconUrl: "{{ asset('leaflet/images/marker-icon.png') }}",
+                shadowUrl: "{{ asset('leaflet/images/marker-shadow.png') }}"
+            });
+            L.marker([{{ $markers[0]['lat'] }}, {{ $markers[0]['lng'] }}], { icon: icon }).addTo(map).bindPopup(location).openPopup();
         };
     </script>
     @endscript
