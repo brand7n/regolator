@@ -11,7 +11,8 @@
     @script
     <script>
         window.initMap = function () {
-            console.log('map loading...');
+            const location = `{!! $location !!}`;
+            //console.log(location);
             const map = L.map('map').setView([{{ $latitude }}, {{ $longitude }}], 13);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -22,10 +23,7 @@
                 Livewire.dispatch('addMarker', e.latlng.lat, e.latlng.lng);
             });
 
-            @foreach ($markers as $marker)
-                //console.log('{!! $location !!}');
-                L.marker([{{ $marker['lat'] }}, {{ $marker['lng'] }}]).addTo(map).bindPopup('{!! $location !!}').openPopup();
-            @endforeach
+            L.marker([{{ $markers[0]['lat'] }}, {{ $markers[0]['lng'] }}]).addTo(map).bindPopup(location).openPopup();
         };
     </script>
     @endscript
