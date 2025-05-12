@@ -3,11 +3,6 @@
         <div x-data x-init="initMap()" class="h-96 w-full" id="map"></div>
     </div>
 
-    @assets
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-    @endassets
-
     @script
     <script>
         window.initMap = function () {
