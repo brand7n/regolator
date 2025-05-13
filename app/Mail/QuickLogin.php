@@ -8,15 +8,14 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Headers;
 
-class RegoInvite extends Mailable
+class QuickLogin extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
-    public $url;
-    public $name;
+    public string $user;
+    public string $url;
+    public string $name;
 
     /**
      * Create a new message instance.
@@ -34,7 +33,7 @@ class RegoInvite extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nittany Rego Invite for ' . $this->name,
+            subject: 'Login Link for ' . $this->name,
         );
     }
 
@@ -44,13 +43,7 @@ class RegoInvite extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.rego_invite',
-            // with: [
-            //     'name' => $this->user->name,
-            //     'url' => $this->url,
-            //     'unsubscribeUrl' => $unsubscribeUrl,
-            //     'declineUrl' => $this->url . '?action=decline',
-            // ]
+            view: 'emails.quick_login',
         );
     }
 
@@ -62,15 +55,5 @@ class RegoInvite extends Mailable
     public function attachments(): array
     {
         return [];
-    }
-
-    public function headers(): Headers
-    {
-        $unsubscribeUrl = $this->url . '?action=unsubscribe';
-        return new Headers(
-            text: [
-                'List-Unsubscribe' => "<{$this->url}?action=unsubscribe>",
-            ],
-        );
     }
 }

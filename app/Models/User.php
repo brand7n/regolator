@@ -100,6 +100,9 @@ class User extends Authenticatable
         $user_data = json_encode([
             'id' => $this->id,
             'hash' => $this->password,
+            // TODO: add expiration?
+            // 'expires' => now()->addMinutes(15)->timestamp,
+
         ]);
         return Crypt::encryptString($user_data);
     }

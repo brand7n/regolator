@@ -11,6 +11,12 @@ Click Here
 
 Details on His Glorious Theme: <a href="https://en.wikipedia.org/wiki/London_Calling">Nittany Calling</a>
 
+Not planning to attend? You can [decline your invite]({{ $url . '?action=decline' }}) to let us know!
+
 ON-ON,<br>
 -tmh
+
+<p style="font-size: 14px; color: #888;">
+    If you do not wish to receive further emails, you can <a href="{{ $url . '?action=unsubscribe' }}">unsubscribe here</a>.
+</p>
 </x-mail::message>

@@ -47,5 +47,5 @@ Route::get('/waiting', function () {
 })->name('waiting');
 
 Route::get('/canihazemail', function () {
-    return view('waiting');
-})->name('waiting');
+    return view('auth.quicklogin');
+})->name('canihazemail');
