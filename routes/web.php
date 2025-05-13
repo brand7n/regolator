@@ -18,13 +18,13 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    // TODO: admin type routes
     Route::get('/activity', function () {
         return view('activity');
     })->name('activity');
-    Route::get('/users', function () {
-        return view('users');
-    })->name('users');
+    // TODO: admin type routes
+    // Route::get('/admin/users', function () {
+    //     return view('users');
+    // })->name('users');
 });
 
 Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request) {
@@ -41,10 +41,6 @@ Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request)
     }
     abort(403, 'Invalid or expired login link.');
 });
-
-Route::get('/waiting', function () {
-    return view('waiting');
-})->name('waiting');
 
 Route::get('/canihazemail', function () {
     return view('auth.quicklogin');
