@@ -37,7 +37,7 @@ Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request)
         activity()->causedBy($user)->log('quick login');
         $user->email_verified_at = Carbon::now();
         $user->save();
-        return redirect('dashboard');
+        return redirect($request->query('action', 'dashboard'));
     }
     abort(403, 'Invalid or expired login link.');
 });
