@@ -11,7 +11,7 @@
     @if ($userExists === null)
         <form wire:submit.prevent="checkEmail" x-data>
             <div>
-                <x-label for="email" value="{{ __('Email') }}" />
+                <x-label for="email" value="Can I Haz Email" />
                 <x-input id="email" wire:model.defer="email" class="block mt-1 w-full" type="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
             <div class="flex items-center justify-end mt-4">
@@ -27,7 +27,7 @@
             </div>
 
             <div class="mt-4">
-                <x-label for="name" value="Hash Name" />
+                <x-label for="name" value="Can I Haz Hash Name" />
                 <x-input id="name" wire:model.defer="name" placeholder="Your name" class="block mt-1 w-full" type="text" x-ref="nameInput" required autofocus />
             </div>
 

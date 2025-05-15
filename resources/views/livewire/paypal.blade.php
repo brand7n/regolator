@@ -124,8 +124,9 @@
 
         @if ($order && $order->status === \App\Models\OrderStatus::Waitlisted)
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-                You are on the waitlist for this event.
+                You are on the waitlist for this event. Verify and edit your profile by clicking below.
             </p>
+            <x-button class="py-3 items-center animate-bounce" wire:click="edit">Edit</x-button>
         @endif
         <div wire:ignore.self class="py-4">
             <div id="paypal-button-container"></div>

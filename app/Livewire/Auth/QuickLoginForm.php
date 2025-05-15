@@ -39,7 +39,7 @@ class QuickLoginForm extends Component
 
         $this->validate([
             'email' => 'required|email|unique:users,email',
-            'name' => 'required|string|max:255',
+            'name' => 'required|string',
         ]);
 
         Log::info("creating {$this->email} for {$this->name}");
