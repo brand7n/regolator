@@ -14,8 +14,8 @@ use Spatie\Activitylog\LogOptions;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Crypt, Log};
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -95,15 +95,16 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
-    public function getQuickLogin() : string
+    public function getQuickLogin(int $expiresInHours = 0) : string
     {
         $user_data = json_encode([
-            'id' => $this->id,
             'hash' => $this->password,
-            // TODO: add expiration?
-            // 'expires' => now()->addMinutes(15)->timestamp,
-
+            'id' => $this->id,
         ]);
+        if ($expiresInHours > 0) {
+            $user_data['expires'] = Carbon::now()->addHours($expiresInHours)->toIso8601String();
+        }
+        Log::debug("quick login: " . $user_data);
         return Crypt::encryptString($user_data);
     }
 
@@ -111,6 +112,10 @@ class User extends Authenticatable
     {
         try {
             $user_data = json_decode(Crypt::decryptString($quick_login), true);
+            if (isset($user_data['expires']) && Carbon::parse($user_data['expires'])->isPast()) {
+                Log::warning("quick login expired", $user_data);
+                return null;
+            }
             $user = User::where('id', $user_data['id'])->first();
             if ($user->password === $user_data['hash']) {
                 return $user;
@@ -119,5 +124,16 @@ class User extends Authenticatable
             Log::error("error processing quick login: " . $e->getMessage());
         }
         return null;
+    }
+
+    public static function add(string $email, string $name) : User
+    {
+        $user = new User;
+        $user->name = $name;
+        $user->email = $email;
+        $actual_password = Str::random(40);
+        $user->password = $actual_password;
+        $user->save();
+        return $user;
     }
 }
