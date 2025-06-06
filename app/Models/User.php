@@ -136,4 +136,9 @@ class User extends Authenticatable
         $user->save();
         return $user;
     }
+
+    public function webauthn_credentials()
+    {
+        return $this->hasMany(WebAuthnCredential::class);
+    }
 }

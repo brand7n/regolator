@@ -25,6 +25,9 @@ Route::middleware([
     // Route::get('/admin/users', function () {
     //     return view('users');
     // })->name('users');
+    Route::get('/webauthn/register', function () {
+        return view('auth.register-webauthn');
+    })->name('webauthn.register');
 });
 
 Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request) {
@@ -45,3 +48,7 @@ Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request)
 Route::get('/canihazemail', function () {
     return view('auth.quicklogin');
 })->name('canihazemail');
+
+Route::get('/webauthn/login', function () {
+    return view('auth.webauthn-login');
+})->name('webauthn.login');
