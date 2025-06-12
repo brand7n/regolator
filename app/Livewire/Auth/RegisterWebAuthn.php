@@ -6,40 +6,184 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Remodulate\WebauthnFFI;
+use RuntimeException;
 
 class RegisterWebAuthn extends Component
 {
     public string $challenge;
     public bool $registered = false;
     public string $error = '';
+    public array $registrationData;
+
+    private WebauthnFFI $webauthn;
 
     public function mount()
     {
-        // Generate a random challenge for registration
-        $this->challenge = Str::random(32);
-        session(['webauthn.register_challenge' => $this->challenge]);
+        try {
+            Log::debug('Starting WebAuthn registration');
+            $this->webauthn = new WebauthnFFI();
+            
+            $user = Auth::user();
+            Log::debug('Got authenticated user', ['user_id' => $user->id]);
+            
+            $this->registrationData = $this->webauthn->registerBegin([
+                'user_id' => (string)$user->id,
+                'user_name' => $user->name,
+            ]);
+            
+            Log::debug('Registration data received', ['data' => $this->registrationData]);
+            
+            // Store the registration data in session
+            $this->storeRegistrationData();
+            
+            // Extract challenge from registration data
+            $this->challenge = $this->extractChallenge();
+            
+        } catch (RuntimeException $e) {
+            Log::error('WebAuthn registration failed', ['error' => $e->getMessage()]);
+            $this->error = 'Registration failed: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            Log::error('Unexpected error during registration', ['error' => $e->getMessage()]);
+            $this->error = 'An unexpected error occurred: ' . $e->getMessage();
+        }
     }
 
     public function register($credential)
     {
         try {
-            Log::info('WebAuthn registration credential received', ['credential' => $credential]);
-
-            // TODO: Implement proper WebAuthn verification
-            // For now, we'll just store the credential ID
-            $user = Auth::user();
-            $user->webauthn_credentials()->create([
-                'credential_id' => $credential['id'],
-                'public_key' => $credential['response']['clientDataJSON'],
-                'counter' => 0,
+            Log::debug('Processing registration credential', [
+                'credential_type' => gettype($credential),
+                'is_array' => is_array($credential)
             ]);
+
+            if (!is_array($credential)) {
+                throw new RuntimeException('Invalid credential format: expected array');
+            }
+
+            // Initialize WebauthnFFI
+            $this->webauthn = new WebauthnFFI();
+
+            $this->validateCredential($credential);
+            
+            // Get stored registration data
+            $registrationData = $this->getStoredRegistrationData();
+            
+            // Verify the credential
+            $result = $this->webauthn->registerFinish([
+                'registration' => $registrationData['registration'],
+                'client_data' => $this->formatClientData($credential),
+            ]);
+
+            // Store the verified credential
+            $this->storeVerifiedCredential($result);
 
             $this->registered = true;
             return redirect()->intended(route('dashboard'));
-        } catch (\Exception $e) {
+
+        } catch (RuntimeException $e) {
             Log::error('WebAuthn registration failed', ['error' => $e->getMessage()]);
             $this->error = 'Registration failed: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            Log::error('Unexpected error during registration', ['error' => $e->getMessage()]);
+            $this->error = 'An unexpected error occurred: ' . $e->getMessage();
         }
+    }
+
+    private function storeRegistrationData(): void
+    {
+        Log::debug('Storing registration data in session', [
+            'session_id' => session()->getId(),
+            'session_name' => session()->getName()
+        ]);
+        
+        session()->put('webauthn.registration', $this->registrationData);
+        session()->save();
+        
+        // Verify storage
+        $storedData = session()->get('webauthn.registration');
+        if (empty($storedData)) {
+            throw new RuntimeException('Failed to store registration data in session');
+        }
+        
+        Log::debug('Registration data stored successfully');
+    }
+
+    private function extractChallenge(): string
+    {
+        if (!isset($this->registrationData['challenge']['publicKey']['challenge'])) {
+            throw new RuntimeException('Invalid registration data structure: missing challenge');
+        }
+        
+        // The challenge is already base64url encoded in the response
+        return $this->registrationData['challenge']['publicKey']['challenge'];
+    }
+
+    private function validateCredential(array $credential): void
+    {
+        if (empty($credential['response']['clientDataJSON'])) {
+            throw new RuntimeException('Invalid credential: missing clientDataJSON');
+        }
+
+        if (empty($credential['response']['attestationObject'])) {
+            throw new RuntimeException('Invalid credential: missing attestationObject');
+        }
+
+        $decodedClientData = base64_decode($credential['response']['clientDataJSON'], true);
+        if ($decodedClientData === false) {
+            throw new RuntimeException('Invalid base64 encoding in clientDataJSON');
+        }
+
+        $clientData = json_decode($decodedClientData, true);
+        if (!$clientData) {
+            throw new RuntimeException('Invalid clientDataJSON format: ' . json_last_error_msg());
+        }
+
+        // Verify challenge matches
+        $storedData = $this->getStoredRegistrationData();
+        if ($clientData['challenge'] !== $storedData['challenge']['publicKey']['challenge']) {
+            throw new RuntimeException('Challenge mismatch');
+        }
+    }
+
+    private function getStoredRegistrationData(): array
+    {
+        $registrationData = session()->get('webauthn.registration');
+        if (!$registrationData) {
+            throw new RuntimeException('Registration session expired');
+        }
+        return $registrationData;
+    }
+
+    private function formatClientData(array $credential): string
+    {
+        return json_encode([
+            'id' => $credential['id'],
+            'rawId' => $credential['rawId'],
+            'response' => [
+                'attestationObject' => $credential['response']['attestationObject'],
+                'clientDataJSON' => $credential['response']['clientDataJSON'],
+            ],
+            'type' => $credential['type'],
+        ]);
+    }
+
+    private function storeVerifiedCredential(array $result): void
+    {
+        $user = Auth::user();
+        
+        // Log the result structure for debugging
+        Log::debug('Registration result structure:', ['result' => $result]);
+        
+        if (!isset($result['credential'])) {
+            throw new RuntimeException('Invalid registration result: missing credential data');
+        }
+        
+        $user->webauthn_credentials()->create([
+            'credential_id' => $result['credential']['id'],
+            'public_key' => json_encode($result['credential']),
+            'counter' => $result['credential']['counter'] ?? 0,
+        ]);
     }
 
     public function render()

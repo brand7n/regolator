@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
+        "remodulate/webauthn-ffi": "dev-main",
         "spatie/laravel-activitylog": "^4.8"
     },
     "require-dev": {
@@ -68,6 +69,12 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/brandin/proj/webauthn-ffi"
+        }
+    ]
 }

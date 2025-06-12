@@ -16,8 +16,9 @@
 
                         console.log('Starting WebAuthn registration:', challenge);
                         
-                        // Convert the base64 challenge to a Uint8Array
-                        const challengeBuffer = Uint8Array.from(atob(challenge), c => c.charCodeAt(0));
+                        // Convert the base64url challenge to a Uint8Array
+                        const challengeBase64 = challenge.replace(/-/g, '+').replace(/_/g, '/');
+                        const challengeBuffer = Uint8Array.from(atob(challengeBase64), c => c.charCodeAt(0));
                         console.log('Challenge buffer:', challengeBuffer);
 
                         // Get the user's ID from the server
@@ -49,20 +50,39 @@
                             }
                         };
 
-                        console.log('Requesting credential creation with options:', publicKey);
+                        console.log('Requesting credential creation with options:', { publicKey });
                         const credential = await navigator.credentials.create({ publicKey });
                         console.log('Got credential:', credential);
 
                         // Convert the credential to a format we can send to the server
                         const credentialData = {
                             id: credential.id,
-                            rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+                            rawId: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.rawId))),
                             type: credential.type,
                             response: {
-                                attestationObject: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject))),
-                                clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON)))
+                                attestationObject: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.response.attestationObject))),
+                                clientDataJSON: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.response.clientDataJSON)))
                             }
                         };
+
+                        // Log each part of the credential data for debugging
+                        console.log('Credential data parts:', {
+                            id: credentialData.id,
+                            rawId: credentialData.rawId,
+                            type: credentialData.type,
+                            attestationObject: credentialData.response.attestationObject,
+                            clientDataJSON: credentialData.response.clientDataJSON
+                        });
+
+                        // Verify the base64 encoding
+                        try {
+                            const decodedClientData = atob(credentialData.response.clientDataJSON);
+                            console.log('Successfully decoded clientDataJSON');
+                            const decodedAttestation = atob(credentialData.response.attestationObject);
+                            console.log('Successfully decoded attestationObject');
+                        } catch (e) {
+                            console.error('Base64 decode test failed:', e);
+                        }
 
                         console.log('Sending credential to server:', credentialData);
                         onSuccess(credentialData);
