@@ -29,8 +29,8 @@
                         const publicKey = {
                             challenge: challengeBuffer,
                             rp: {
-                                name: '{{ config('app.name') }}',
-                                id: window.location.hostname
+                                id: 'rego.test',
+                                name: 'rego.test'
                             },
                             user: {
                                 id: userHandle,
