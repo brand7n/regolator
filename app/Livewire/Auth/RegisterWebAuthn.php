@@ -15,6 +15,8 @@ class RegisterWebAuthn extends Component
     public bool $registered = false;
     public string $error = '';
     public array $registrationData;
+    public string $rp_id = 'rego.test';
+    public string $rp_origin = 'https://rego.test';
 
     private WebauthnFFI $webauthn;
 
@@ -22,7 +24,7 @@ class RegisterWebAuthn extends Component
     {
         try {
             Log::debug('Starting WebAuthn registration');
-            $this->webauthn = new WebauthnFFI();
+            $this->webauthn = new WebauthnFFI($this->rp_id, $this->rp_origin);
             
             $user = Auth::user();
             Log::debug('Got authenticated user', ['user_id' => $user->id]);
@@ -62,7 +64,7 @@ class RegisterWebAuthn extends Component
             }
 
             // Initialize WebauthnFFI
-            $this->webauthn = new WebauthnFFI();
+            $this->webauthn = new WebauthnFFI($this->rp_id, $this->rp_origin);
 
             $this->validateCredential($credential);
             
@@ -171,7 +173,7 @@ class RegisterWebAuthn extends Component
     private function storeVerifiedCredential(array $result): void
     {
         $user = Auth::user();
-        
+
         // Log the result structure for debugging
         Log::debug('Registration result structure:', ['result' => $result]);
         
@@ -181,7 +183,7 @@ class RegisterWebAuthn extends Component
         
         $user->webauthn_credentials()->create([
             'credential_id' => $result['credential']['id'],
-            'public_key' => json_encode($result['credential']),
+            'public_key' => $result['credential']['public_key'],
             'counter' => $result['credential']['counter'] ?? 0,
         ]);
     }

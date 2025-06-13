@@ -1,9 +1,9 @@
 <div 
-    x-data="webAuthnRegister('{{ $challenge }}', credential => $wire.register(credential))"
+    x-data="webAuthnRegister('{{ $challenge }}', '{{ $rp_id }}', credential => $wire.register(credential))"
     x-init="start()"
 >
     <script>
-        function webAuthnRegister(challenge, onSuccess) {
+        function webAuthnRegister(challenge, rp_id, onSuccess) {
             return {
                 error: null,
                 async start() {
@@ -29,8 +29,8 @@
                         const publicKey = {
                             challenge: challengeBuffer,
                             rp: {
-                                id: 'rego.test',
-                                name: 'rego.test'
+                                id: rp_id,
+                                name: rp_id
                             },
                             user: {
                                 id: userHandle,
