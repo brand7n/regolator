@@ -80,6 +80,9 @@ class RegisterWebAuthn extends Component
             // Store the verified credential
             $this->storeVerifiedCredential($result);
 
+            // Clear registration data from session
+            $this->clearRegistrationData();
+
             $this->registered = true;
             return redirect()->intended(route('dashboard'));
 
@@ -186,6 +189,13 @@ class RegisterWebAuthn extends Component
             'public_key' => $result['credential']['public_key'],
             'counter' => $result['credential']['counter'] ?? 0,
         ]);
+    }
+
+    private function clearRegistrationData(): void
+    {
+        Log::debug('Clearing registration data from session');
+        session()->forget('webauthn.registration');
+        session()->save();
     }
 
     public function render()
