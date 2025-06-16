@@ -74,7 +74,7 @@ class RegisterWebAuthn extends Component
             // Verify the credential
             $result = $this->webauthn->registerFinish([
                 'registration' => $registrationData['registration'],
-                'client_data' => $this->formatClientData($credential),
+                'client_data' => $credential,
             ]);
 
             // Store the verified credential
@@ -158,19 +158,6 @@ class RegisterWebAuthn extends Component
             throw new RuntimeException('Registration session expired');
         }
         return $registrationData;
-    }
-
-    private function formatClientData(array $credential): array
-    {
-        return [
-            'id' => $credential['id'],
-            'rawId' => $credential['rawId'],
-            'response' => [
-                'attestationObject' => $credential['response']['attestationObject'],
-                'clientDataJSON' => $credential['response']['clientDataJSON'],
-            ],
-            'type' => $credential['type'],
-        ];
     }
 
     private function storeVerifiedCredential(array $result): void
