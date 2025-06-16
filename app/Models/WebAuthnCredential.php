@@ -10,9 +10,11 @@ class WebAuthnCredential extends Model
     protected $table = 'webauthn_credentials';
 
     protected $fillable = [
-        'credential_id',
-        'public_key',
-        'counter',
+        'passkey',
+    ];
+
+    protected $casts = [
+        'passkey' => 'array',  
     ];
 
     public function user(): BelongsTo

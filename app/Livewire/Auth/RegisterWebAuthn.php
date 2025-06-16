@@ -24,7 +24,7 @@ class RegisterWebAuthn extends Component
     {
         try {
             Log::debug('Starting WebAuthn registration');
-            $this->webauthn = new WebauthnFFI($this->rp_id, $this->rp_origin);
+            $this->webauthn = new WebauthnFFI(Log::getLogger(), $this->rp_id, $this->rp_origin);
             
             $user = Auth::user();
             Log::debug('Got authenticated user', ['user_id' => $user->id]);
@@ -64,7 +64,7 @@ class RegisterWebAuthn extends Component
             }
 
             // Initialize WebauthnFFI
-            $this->webauthn = new WebauthnFFI($this->rp_id, $this->rp_origin);
+            $this->webauthn = new WebauthnFFI(Log::getLogger(), $this->rp_id, $this->rp_origin);
 
             $this->validateCredential($credential);
             
@@ -167,14 +167,8 @@ class RegisterWebAuthn extends Component
         // Log the result structure for debugging
         Log::debug('Registration result structure:', ['result' => $result]);
         
-        if (!isset($result['credential'])) {
-            throw new RuntimeException('Invalid registration result: missing credential data');
-        }
-        
         $user->webauthn_credentials()->create([
-            'credential_id' => $result['credential']['id'],
-            'public_key' => $result['credential']['public_key'],
-            'counter' => $result['credential']['counter'] ?? 0,
+            'passkey' => $result,
         ]);
     }
 
