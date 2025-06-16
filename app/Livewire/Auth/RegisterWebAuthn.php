@@ -160,9 +160,9 @@ class RegisterWebAuthn extends Component
         return $registrationData;
     }
 
-    private function formatClientData(array $credential): string
+    private function formatClientData(array $credential): array
     {
-        return json_encode([
+        return [
             'id' => $credential['id'],
             'rawId' => $credential['rawId'],
             'response' => [
@@ -170,7 +170,7 @@ class RegisterWebAuthn extends Component
                 'clientDataJSON' => $credential['response']['clientDataJSON'],
             ],
             'type' => $credential['type'],
-        ]);
+        ];
     }
 
     private function storeVerifiedCredential(array $result): void
