@@ -48,7 +48,6 @@ class SendEmails extends Command
             $order->event_id = 1;
             $order->status = OrderStatus::Invited;
             $order->save();
-            return;
         }
 
         if ($order->status == OrderStatus::Cancelled || $order->status == OrderStatus::PaymentVerified) {
