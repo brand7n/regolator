@@ -13,8 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('passkey');
             $table->timestamps();
-
-            $table->unique('credential_id');
+            $table->index('user_id');
         });
     }
 
