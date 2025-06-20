@@ -20,10 +20,12 @@
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.13",
+        "laravel/sail": "^1.43",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
         "pestphp/pest-plugin-laravel": "^3.1",
         "phpstan/phpstan": "^2.1",
+        "ryoluo/sail-ssl": "^1.4",
         "spatie/laravel-ignition": "^2.4"
     },
     "autoload": {
@@ -73,8 +75,8 @@
     "prefer-stable": true,
     "repositories": [
         {
-            "type": "path",
-            "url": "/Users/brandin/proj/webauthn-ffi"
+            "type": "vcs",
+            "url": "https://github.com/brand7n/webauthn-ffi.git"
         }
     ]
 }
