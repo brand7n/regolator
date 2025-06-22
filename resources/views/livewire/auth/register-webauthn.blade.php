@@ -8,26 +8,21 @@
                 error: null,
                 async start() {
                     try {
-                        // Check WebAuthn support
-                        if (!window.PublicKeyCredential) {
-                            this.error = 'WebAuthn is not supported in your browser. Please use a modern browser that supports security keys.';
+                        // Check WebAuthn library support
+                        if (!window.webauthnJson) {
+                            this.error = 'WebAuthn library not loaded. Please refresh the page and try again.';
                             return;
                         }
 
                         console.log('Starting WebAuthn registration:', challenge);
                         
-                        // Convert the base64url challenge to a Uint8Array
-                        const challengeBase64 = challenge.replace(/-/g, '+').replace(/_/g, '/');
-                        const challengeBuffer = Uint8Array.from(atob(challengeBase64), c => c.charCodeAt(0));
-                        console.log('Challenge buffer:', challengeBuffer);
-
                         // Get the user's ID from the server
                         const userId = '{{ Auth::id() }}';
                         const userHandle = new Uint8Array(16);
                         crypto.getRandomValues(userHandle);
 
                         const publicKey = {
-                            challenge: challengeBuffer,
+                            challenge: challenge,
                             rp: {
                                 id: rp_id,
                                 name: rp_id
@@ -51,41 +46,11 @@
                         };
 
                         console.log('Requesting credential creation with options:', { publicKey });
-                        const credential = await navigator.credentials.create({ publicKey });
+                        const credential = await window.webauthnJson.create(publicKey);
                         console.log('Got credential:', credential);
 
-                        // Convert the credential to a format we can send to the server
-                        const credentialData = {
-                            id: credential.id,
-                            rawId: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.rawId))),
-                            type: credential.type,
-                            response: {
-                                attestationObject: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.response.attestationObject))),
-                                clientDataJSON: btoa(String.fromCharCode.apply(null, new Uint8Array(credential.response.clientDataJSON)))
-                            }
-                        };
-
-                        // Log each part of the credential data for debugging
-                        console.log('Credential data parts:', {
-                            id: credentialData.id,
-                            rawId: credentialData.rawId,
-                            type: credentialData.type,
-                            attestationObject: credentialData.response.attestationObject,
-                            clientDataJSON: credentialData.response.clientDataJSON
-                        });
-
-                        // Verify the base64 encoding
-                        try {
-                            const decodedClientData = atob(credentialData.response.clientDataJSON);
-                            console.log('Successfully decoded clientDataJSON');
-                            const decodedAttestation = atob(credentialData.response.attestationObject);
-                            console.log('Successfully decoded attestationObject');
-                        } catch (e) {
-                            console.error('Base64 decode test failed:', e);
-                        }
-
-                        console.log('Sending credential to server:', credentialData);
-                        onSuccess(credentialData);
+                        console.log('Sending credential to server:', credential);
+                        onSuccess(credential);
                     } catch (e) {
                         console.error('WebAuthn error:', e);
                         this.error = e.message || 'Registration failed.';

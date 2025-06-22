@@ -21,42 +21,27 @@
                     <button
                         x-data
                         x-on:click="
-                            if (!navigator.credentials) {
-                                alert('Your browser does not support WebAuthn');
+                            if (!window.webauthnJson) {
+                                alert('WebAuthn library not loaded');
                                 return;
                             }
                             
                             const challenge = '{{ $challenge }}';
-                            // Convert the base64url challenge to a Uint8Array
-                            const challengeBase64 = challenge.replace(/-/g, '+').replace(/_/g, '/');
-                            const challengeBuffer = Uint8Array.from(atob(challengeBase64), c => c.charCodeAt(0));
-                            console.log('Challenge buffer:', challengeBuffer);
                             const publicKey = {
-                                challenge: challengeBuffer,
+                                challenge: challenge,
                                 rpId: '{{ $rp_id }}',
                                 allowCredentials: [],
                                 userVerification: 'preferred',
                                 timeout: 60000
                             };
 
-                            navigator.credentials.get({ publicKey })
+                            window.webauthnJson.get(publicKey)
                                 .then(credential => {
-                                    const response = {
-                                        id: credential.id,
-                                        rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-                                        response: {
-                                            clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
-                                            authenticatorData: btoa(String.fromCharCode(...new Uint8Array(credential.response.authenticatorData))),
-                                            signature: btoa(String.fromCharCode(...new Uint8Array(credential.response.signature))),
-                                            userHandle: credential.response.userHandle ? btoa(String.fromCharCode(...new Uint8Array(credential.response.userHandle))) : null
-                                        },
-                                        type: credential.type
-                                    };
-                                    
-                                    $wire.authenticate(response);
+                                    console.log('Authentication successful:', credential);
+                                    $wire.authenticate(credential);
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
+                                    console.error('Authentication error:', error);
                                     if (error.name === 'NotAllowedError') {
                                         alert('Authentication was cancelled or failed');
                                     } else {

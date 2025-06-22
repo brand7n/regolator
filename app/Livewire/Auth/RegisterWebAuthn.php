@@ -66,6 +66,8 @@ class RegisterWebAuthn extends Component
             // Initialize WebauthnFFI
             $this->webauthn = new WebauthnFFI(Log::getLogger(), $this->rp_id, $this->rp_origin);
 
+            // The WebAuthn JSON library provides the credential data already properly formatted
+            // We can validate the basic structure and pass it directly to the FFI library
             $this->validateCredential($credential);
             
             // Get stored registration data
@@ -134,9 +136,11 @@ class RegisterWebAuthn extends Component
             throw new RuntimeException('Invalid credential: missing attestationObject');
         }
 
-        $decodedClientData = base64_decode($credential['response']['clientDataJSON'], true);
+        // The WebAuthn JSON library provides base64url encoded data
+        // We can decode it to validate the structure
+        $decodedClientData = base64_decode(strtr($credential['response']['clientDataJSON'], '-_', '+/'), true);
         if ($decodedClientData === false) {
-            throw new RuntimeException('Invalid base64 encoding in clientDataJSON');
+            throw new RuntimeException('Invalid base64url encoding in clientDataJSON');
         }
 
         $clientData = json_decode($decodedClientData, true);

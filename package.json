@@ -16,6 +16,7 @@
         "vite": "^5.2.8"
     },
     "dependencies": {
+        "@github/webauthn-json": "^2.1.1",
         "leaflet": "^1.9.4"
     }
 }

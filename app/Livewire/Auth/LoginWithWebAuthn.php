@@ -102,13 +102,8 @@ class LoginWithWebAuthn extends Component
                 throw new \RuntimeException('Authentication session expired');
             }
 
-            // TODO: uncomment this to intentionally fail authentication
-            // Log::debug('Auth data before', ['auth_data' => $authData]);
-            // $bytes = random_bytes(32); // 32 bytes = 256 bits of entropy
-            // $authData['auth_state']['ast']['challenge'] = rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
-            // Log::debug('Auth data after', ['auth_data' => $authData]);
-
-            // Verify the credential
+            // The WebAuthn JSON library provides the credential data already properly formatted
+            // We can pass it directly to the FFI library
             $result = $this->webauthn->authenticateFinish([
                 'auth_state' => $authData['auth_state'],
                 'client_data' => $credential,
