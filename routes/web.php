@@ -18,13 +18,13 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    // TODO: admin type routes
     Route::get('/activity', function () {
         return view('activity');
     })->name('activity');
-    Route::get('/users', function () {
-        return view('users');
-    })->name('users');
+    // TODO: admin type routes
+    // Route::get('/admin/users', function () {
+    //     return view('users');
+    // })->name('users');
 });
 
 Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request) {
@@ -37,15 +37,11 @@ Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request)
         activity()->causedBy($user)->log('quick login');
         $user->email_verified_at = Carbon::now();
         $user->save();
-        return redirect('dashboard');
+        return redirect($request->query('action', 'dashboard'));
     }
     abort(403, 'Invalid or expired login link.');
 });
 
-Route::get('/waiting', function () {
-    return view('waiting');
-})->name('waiting');
-
 Route::get('/canihazemail', function () {
-    return view('waiting');
-})->name('waiting');
+    return view('auth.quicklogin');
+})->name('canihazemail');

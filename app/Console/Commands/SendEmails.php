@@ -72,8 +72,8 @@ class SendEmails extends Command
                     'error' => $t,
                 ]);               
             }
-	    return;
-	}
+	          return;
+	      }
 
         $this->info('Sending invite to ' . $user->name);
         try {

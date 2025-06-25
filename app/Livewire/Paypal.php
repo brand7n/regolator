@@ -19,7 +19,7 @@ class Paypal extends Component
     public $bonus_accepted = false;
     public $name;
     public string $sandbox;
-
+    public ?Order $order;
     public ?Event $event = null;
 
     public function mount(int $eventId)
@@ -53,7 +53,15 @@ class Paypal extends Component
 
         /** @var User $user */
         $user = Auth::user();
+        $this->order = $this->event->getOrder($user);
+        if ($this->order && $this->order->status === OrderStatus::PaymentVerified) {
+            $this->rego_paid_at = $this->order->verified_at;
+            Log::info('payment verified: ', ['rego_paid_at' => $this->rego_paid_at]);
+        } else {
+            Log::info('payment not verified: ', ['order' => $this->order]);
+        }
         $this->rego_paid_at = $this->event->regoPaidAt($user);
+        // TODO: check for pending status to prevent user from paying again?
 
         Log::info('render', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
         return view('livewire.paypal');
@@ -64,8 +72,8 @@ class Paypal extends Component
         activity()->causedBy(Auth::user())->withProperties([
             'event' => $this->event,
             'transaction' => $orderID,
-        ])->log('order created');
-        Log::info('order created', ['user' => Auth::user(), 'order' => $orderID]);
+        ])->log('paypal OrderID set');
+        Log::info('paypal OrderID set', ['user' => Auth::user(), 'order' => $orderID]);
 
         /** @var User $user */
         $user = Auth::user();
@@ -82,6 +90,7 @@ class Paypal extends Component
             $order->save();
         } else {
             Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
+            return;
         }
 
         $this->skipRender();
@@ -145,5 +154,18 @@ class Paypal extends Component
     public function edit()
     {
         return redirect()->to('/user/profile');
+    }
+
+    public function waitlist() 
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        //Log::info('waitlist', ['user' => Auth::user()]);
+        $this->order = Order::create([
+            'user_id' => $user->id,
+            'event_id' => $this->event->id,
+            'status' => OrderStatus::Waitlisted,
+        ]);
     }
 }
