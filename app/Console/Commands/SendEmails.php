@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RegoReminder;
-use App\Mail\RegoInvite;
+use App\Mail\{RegoReminder, RegoInvite, PaymentConfirmation};
 use App\Models\{Event, Order, OrderStatus};
 
 class SendEmails extends Command
@@ -50,12 +49,33 @@ class SendEmails extends Command
             $order->save();
         }
 
-        if ($order->status == OrderStatus::Cancelled || $order->status == OrderStatus::PaymentVerified) {
-            $this->error('User has already been cancelled or has paid up');
+        if ($order->status == OrderStatus::Cancelled) {
+            $this->error('User has already been cancelled');
             return;
         }
 
-        $this->info('Sending to ' . $user->name);
+        if ($order->status == OrderStatus::PaymentVerified) {
+            $this->info('User has already paid up, sending payment verification to ' . $user->name);
+            try {
+                Mail::to($user)->send(new PaymentConfirmation($user, url('/quicklogin/' . $quick_login)));
+                activity()
+                    ->causedBy(auth()->user() ?? null)
+                    ->performedOn($user)
+                    ->withProperties([
+                        'event' => Event::findOrFail(1),
+                        'order' => $order,
+                    ])
+                    ->log('sent payment verification');
+            } catch (\Throwable $t) {
+                Log::error("failed to send email", [
+                    'user' => $user,
+                    'error' => $t,
+                ]);               
+            }
+	          return;
+	      }
+
+        $this->info('Sending invite to ' . $user->name);
         try {
             Mail::to($user)->send(new RegoInvite($user, url('/quicklogin/' . $quick_login)));
             activity()
