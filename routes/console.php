@@ -17,7 +17,9 @@ Schedule::call(function () {
         if ($order->modified_at && ($order->modified_at->diffInHours() < 1.0)) {
             $order->verify();
         } else {
-            Log::warning('Not attempting to verify order: ' . $order->order_id);
+            Log::warning('No longer attempting to verify order: ' . $order->order_id);
+            $order->status = \App\Models\OrderStatus::Accepted;
+            $order->save();
         }
     }
 })->everyFiveMinutes();
