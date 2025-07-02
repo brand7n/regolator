@@ -11,11 +11,15 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Mail\QuickLogin;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
 
 class QuickLoginForm extends Component
 {
     public $email = '';
     public $name = '';
+    public $phone = '';
     public $userExists = null;
 
     public function checkEmail()
@@ -33,6 +37,24 @@ class QuickLoginForm extends Component
         }
     }
 
+    protected function validatePhone()
+    {
+        $phoneUtil = PhoneNumberUtil::getInstance();
+
+        try {
+            $parsed = $phoneUtil->parse($this->phone, 'US'); // use 'AUTO' or user country code
+            if (!$phoneUtil->isValidNumber($parsed)) {
+                throw new \Exception('Invalid phone number');
+            }
+
+            // You can normalize to E.164 format (e.g., +15555551212)
+            $this->phone = $phoneUtil->format($parsed, PhoneNumberFormat::E164);
+
+        } catch (NumberParseException | \Exception $e) {
+            $this->addError('phone', 'The phone number is not valid.');
+        }
+    }
+
     public function registerAndSendLink()
     {
         Log::info("creating {$this->email} for {$this->name}");
@@ -40,13 +62,16 @@ class QuickLoginForm extends Component
         $this->validate([
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string',
+            'phone' => 'required|string',
         ]);
+        $this->validatePhone();
 
         Log::info("creating {$this->email} for {$this->name}");
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
             'password' => Str::random(40),
+            'phone' => $this->phone,
         ]);
 
         $this->sendMagicLink($user);
