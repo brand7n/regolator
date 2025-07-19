@@ -16,7 +16,7 @@
                     <div class="flex-col items-center">
                     <img class="h-96" src="/nittanycalling.jpg" />
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-August 1, 2025 2pm - August 3, 2024 noon</p>
+August 1, 2025 2pm - August 3, 2025 11:59am</p>
 <div class="animate-bounce font-semibold text-gray-800 dark:text-gray-200">({{ $hoursRemaining }} hours and {{ $minutesRemaining }} minutes from now)</div>
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 <b>PLEASE READ CAREFULLY AS SOME POLICIES HAVE CHANGED</b></p>
@@ -43,16 +43,6 @@ COST: $165/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>
         </x-slot>
     </x-rego-section>
-@if(\App\Models\Event::findOrFail(1)->regoPaidAt(Auth::user()) === null)
-    <x-rego-section>
-        <x-slot name="title">YOU'VE UNLOCKED A SPECIAL DEAL</x-slot>
-        <x-slot name="content">
-            <p class="animate-bounce py-3 font-semibold text-gray-800 dark:text-gray-200">
-                Pay for your EH3 rego now along with your NVHHH rego and receive a $15 discount. Just add the deal when you pay below and complete your EH3 rego here (skipping the payment part): <a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href="https://hashrego.com/events/eh3-eeries-32-analversary-at-brushwood-2025">EH3 32nd Analversary At Brushwood July 3-6</a>
-            </p>
-        </x-slot>
-    </x-rego-section>
-@endif
     <x-rego-section>
         <x-slot name="title">LOCATION</x-slot>
         <x-slot name="content">
