@@ -91,7 +91,6 @@
         @if ($order && $order->status !== \App\Models\OrderStatus::Waitlisted)
             @if ($terms_accepted && !$rego_paid_at)
             <div class="space-y-4">
-                <x-button class="py-3 items-center " wire:click="toggle_bonus">{{ $bonus_accepted ? 'Remove' : 'Add' }} EH3 Rego Deal ({{ $bonus_accepted ? '-' : '+' }}$115)</x-button>
                 <p class="font-semibold text-gray-800 dark:text-gray-200">
                     TOTAL: ${{ $price }}
                 </p>
