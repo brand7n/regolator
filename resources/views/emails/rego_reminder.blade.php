@@ -30,6 +30,26 @@ You can also use this link to view event information. Please review and refer ba
 
 SHORT BUS on Saturday will go into the "Your Favorite 70s/80s Band Zone". If you're hoping to get on the 🚌, ***don't forget to bring $60 CASH***, and as always be prepared beg or bribe your hares (TuTu Fairy, Porkscrew, and Dragnet) for a spot on the bus.
 
+## Trails
+
+- Friday Tyrant Roast aka PUSSY Trail: <4 miles
+- Saturday Eagle: ~5.5 miles and 1200ft of elevation gain
+- Saturday Turkey: ~3.6 miles and 350ft of elevation gain
+- Short Bus: 0.0 miles and 0ft of elevation gain
+- Saturday Never Leave Camp: potential extracurricular river activity (ask for details if interested)
+- Sunday Fat-Boy Trail: <0.25 miles and 10 ft of elevation gain
+
+
+## What to Bring ✅
+
+- Good attitude
+- Insect repellent, sunscreen
+- Something to sleep in/on
+- Floaties/footwear for river time (assuming river conditions remain safe)
+- Ibuprofen or your favotite hangover remedy
+
+**Please contact us if you have any ideas for skits or shot stops for the naked run.**
+
 ## Thursday Night Prelube🧴
 In tradition, we usually start the weekend event a day early with a Thursday night prelube pub crawl in downtown State College and an on-after party at Sux & EW's house! Pub crawl is pay as you go. If you plan on coming, please fill out <a href="https://forms.gle/Wf3Ldkf7nKQ6f1m6A">this brief survey</a> so we can get an idea of what numbers to expect when planning the pub crawl and party.
 
@@ -52,14 +72,12 @@ What's good to bring? The answer is simply anything you like that you think othe
 
 Untappd check-ins, know-it-all comments, long winded descriptions of what you taste at the back-end of your latest sip. All these are encouraged with pinkies up!
 
-## Admonishments and Outro -- 🚨**READ THIS SHIT**🚨
+## Admonishments and Outro -- 🚨**READ THIS CAREFULLY**🚨
 🚫 **NO LARGE CAMPERS / TRAVEL TRAILERS / RVs ABOVE “VAN-ISH” SIZE.**  
 We have made this decision for the safety of everyone and to ensure we continue to be welcome at The Sons. We need room for buses, bands, beer, and chaos. If you have any question whether your camping rig is acceptable please contact us.
 
 🚫 **NO PERSONAL FOOD IN THE CAMP KITCHEN.**  
-Outdoor fridges and freezers are gone. The kitchen is for our glorious kitchen crew only. Unauthorized food will be tossed without guilt.
-
-**Please contact us if you have any ideas for skits or shot stops for the naked run.** Bring a good attitude, plenty of insect repellent, and some ibuprofen!
+Outdoor fridges and freezers are gone. The kitchen is for our glorious kitchen crew only. Unauthorized food items stored in the kitchen will be tossed without guilt.
 
 **ON-ON,**<br>
 **Daddy's Home...B!#ch & The Ex-Tyrants of Nittany Valley**
