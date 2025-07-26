@@ -26,7 +26,7 @@ Click Here
 You can also use this link to view event information. Please review and refer back to this page as it may be updated at any time without notice.
 
 ## Theme and Short Bus 🚌 Stuff
-<a href="https://en.wikipedia.org/wiki/London_Calling">Nittany Calling</a> is this year's theme.Suggested attire for Saturday night's fun is *punk rock!!*🤘🎸...think safety pins, mohawks, leather, bad (wardrobe) decisions.
+<a href="https://en.wikipedia.org/wiki/London_Calling">Nittany Calling</a> is this year's theme. Suggested attire for Saturday night's fun is *punk rock!!*🤘🎸...think safety pins, mohawks, leather, bad (wardrobe) decisions.
 
 SHORT BUS on Saturday will go into the "Your Favorite 70s/80s Band Zone". If you're hoping to get on the 🚌, ***don't forget to bring $60 CASH***, and as always be prepared beg or bribe your hares (TuTu Fairy, Porkscrew, and Dragnet) for a spot on the bus.
 
