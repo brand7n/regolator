@@ -16,8 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\{Crypt, Log};
 use Illuminate\Support\Str;
+use Filament\Models\Contracts\FilamentUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     //use HasApiTokens;
     use HasFactory;
@@ -136,5 +137,10 @@ class User extends Authenticatable
         $user->password = $actual_password;
         $user->save();
         return $user;
+    }
+
+    public function canAccessPanel(\Filament\Panel $panel): bool
+    {
+        return $this->id === 9;
     }
 }
