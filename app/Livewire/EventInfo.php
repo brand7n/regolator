@@ -15,7 +15,7 @@ class EventInfo extends Component
 
     protected $rules = [
         'cabin_number' => 'required|integer|min:1',
-        'shot_stop'    => 'nullable|string|max:100',
+        'shot_stop'    => 'nullable|string|max:1000',
     ];
 
     public function mount($eventId)

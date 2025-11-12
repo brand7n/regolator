@@ -116,7 +116,7 @@
 
         @if (!$order)
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-                Click below to add yourself to the waitlist for this event.
+                Please complete the requested info above. Just ignore the button below.
             </p>
             <x-button class="py-3 items-center animate-bounce" wire:click="waitlist">Add to Waitlist</x-button>
         @endif
