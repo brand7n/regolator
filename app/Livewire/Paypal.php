@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use Auth;
 use Illuminate\Support\Carbon;
 use App\Models\{User, Order, OrderStatus, Event};
+use Livewire\Attributes\On;
 
 class Paypal extends Component
 {
@@ -37,6 +38,12 @@ class Paypal extends Component
     }
 
     #[On('order-updated')]
+    public function handleUpdatedEvent()
+    {
+        Log::info('evented');
+        $this->render();
+    }
+
     public function render()
     {
         if (!$this->event) {

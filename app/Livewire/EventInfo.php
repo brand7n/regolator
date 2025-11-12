@@ -58,6 +58,7 @@ class EventInfo extends Component
 
 	    // Re-render other components
 	    $this->dispatch('order-updated');
+	    \Log::info("dispatch");
 
 	    session()->flash('message', 'Cabin info saved!');
 	}
