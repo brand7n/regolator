@@ -26,7 +26,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'event_id',
-        'status',
+	'status',
+	'event_info',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -45,6 +46,7 @@ class Order extends Model
         return [
             'verified_at' => 'datetime',
             'status' => OrderStatus::class,
+	    'event_info' => 'array',
         ];
     }
 

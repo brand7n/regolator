@@ -36,6 +36,7 @@ class Paypal extends Component
         Log::info('mount', ['event' => $this->event]);
     }
 
+    #[On('order-updated')]
     public function render()
     {
         if (!$this->event) {
