@@ -29,6 +29,12 @@ LOCATION:<br>
 Parallel Loop Cottages<br>
 Allegany State Park, NY</p>
 
+<div class="mb-4 text-center py-3 bg-red-950 border-2 border-red-500 rounded animate-pulse">
+    <p class="text-2xl font-extrabold text-red-500 animate-bounce tracking-wider">
+        ⚠️ MAKE SURE YOU HAVE CABIN SPACE BEFORE REGO-ING FOR THIS EVENT ⚠️
+    </p>
+</div>
+
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
 COST: $35.69/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)</p>
     </div>

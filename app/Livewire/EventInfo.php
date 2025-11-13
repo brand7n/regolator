@@ -12,10 +12,12 @@ class EventInfo extends Component
     public $order;
     public $cabin_number;
     public $shot_stop;
+    public $reserved_by;
 
     protected $rules = [
-        'cabin_number' => 'required|integer|min:1',
-        'shot_stop'    => 'nullable|string|max:1000',
+        'cabin_number' => 'required|integer|between:1,15',
+	'reserved_by' => 'required|string|max:512',
+        'shot_stop'    => 'nullable|string|max:512',
     ];
 
     public function mount($eventId)
@@ -30,6 +32,7 @@ class EventInfo extends Component
         if ($this->order) {
             $this->cabin_number = data_get($this->order->event_info, 'cabin_number');
             $this->shot_stop    = data_get($this->order->event_info, 'shot_stop');
+            $this->reserved_by  = data_get($this->order->event_info, 'reserved_by');
         }
     }
 
@@ -50,6 +53,7 @@ class EventInfo extends Component
 	    $order->event_info = [
 		'cabin_number' => $this->cabin_number,
 		'shot_stop'    => $this->shot_stop,
+		'reserved_by'  => $this->reserved_by,
 	    ];
 
 	    $order->save();

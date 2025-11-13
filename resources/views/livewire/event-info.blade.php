@@ -1,4 +1,4 @@
-<div class="max-w-sm mx-auto p-4 bg-gray-900 rounded shadow shadow-gray-800">
+<div class="max-w-md mx-auto p-4 bg-gray-900 rounded shadow shadow-gray-800">
     @if (session()->has('message'))
         <div class="mb-3 p-2 text-green-200 bg-green-900 rounded">
             {{ session('message') }}
@@ -22,7 +22,22 @@
                 <span class="text-sm text-red-200">{{ $message }}</span>
             @enderror
         </div>
-
+<div>
+    <label for="reserved_by" class="block text-sm font-medium text-white">
+        Reserved By
+    </label>
+    <input
+        type="text"
+        id="reserved_by"
+        wire:model.defer="reserved_by"
+        placeholder="Enter the name of the party that reserved this cabin"
+        class="mt-2 block w-full rounded-md border-0 py-1.5 px-3 text-white bg-gray-800
+               ring-1 ring-inset ring-gray-700 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+    />
+    @error('reserved_by')
+        <span class="text-sm text-red-200">{{ $message }}</span>
+    @enderror
+</div>
         <div>
             <label for="shot_stop" class="block text-sm font-medium text-white">
                 Shot Stop?

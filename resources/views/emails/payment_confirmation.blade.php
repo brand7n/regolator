@@ -2,14 +2,12 @@
 # Greetings from Nittany Valley, {{ $name }}
 
 ## Payment Confirmation
-Your payment for the 1900th weekend has been received!
+Your payment for Holidaze has been received!
 
 Please review your profile information, and if necessary edit by clicking the link below:
 
 - Nerd Name: {{ $nerd_name }}
 - Kennel: {{ $kennel }}
-- Shirt Size: {{ $shirt_size }}
-- Short Bus: {{ $short_bus }}
 
 <x-mail::button :url="$url">
 Click Here

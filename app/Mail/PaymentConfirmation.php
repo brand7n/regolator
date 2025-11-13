@@ -41,7 +41,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'NVHHH 1900th Payment Confirmation for ' . $this->name,
+            subject: 'Holidaze 2025 Payment Confirmation for ' . $this->name,
         );
     }
 
