@@ -18,6 +18,10 @@ use Illuminate\Support\Facades\{Crypt, Log};
 use Illuminate\Support\Str;
 use Filament\Models\Contracts\FilamentUser;
 
+/**
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ */
+
 class User extends Authenticatable implements FilamentUser
 {
     //use HasApiTokens;

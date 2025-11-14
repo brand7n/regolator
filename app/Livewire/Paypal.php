@@ -86,7 +86,7 @@ class Paypal extends Component
         /** @var User $user */
         $user = Auth::user();
         // TODO: accepted
-        $order = Order::whereIn('status', [OrderStatus::Invited->value, OrderStatus::PaypalPending->value])
+        $order = Order::whereIn('status', [OrderStatus::Invited->value, OrderStatus::Accepted, OrderStatus::PaypalPending->value])
             ->where('event_id', $this->event->id)
             ->where('user_id', $user->id)
             ->whereNull('verified_at')

@@ -14,6 +14,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
+/**
+ * @property \App\Models\OrderStatus $status
+ * @property string|null $user_name
+ * @property array|null $event_info
+ * @property \Carbon\Carbon $created_at
+ * @property string $order_id
+ */
+
 class Order extends Model
 {
     use LogsActivity;
@@ -26,8 +34,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'event_id',
-	'status',
-	'event_info',
+	    'status',
+	    'event_info',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -46,7 +54,7 @@ class Order extends Model
         return [
             'verified_at' => 'datetime',
             'status' => OrderStatus::class,
-	    'event_info' => 'array',
+	        'event_info' => 'array',
         ];
     }
 

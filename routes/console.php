@@ -14,7 +14,8 @@ Schedule::call(function () {
         ->where('status', \App\Models\OrderStatus::PaypalPending->value)
         ->get();
     foreach ($orders as $order) {
-        if ($order->modified_at && ($order->modified_at->diffInHours() < 1.0)) {
+        if ($order->updated_at->gt(now()->subHour())) {
+            Log::info('Verifying order: ' . $order->order_id);
             $order->verify();
         } else {
             Log::warning('No longer attempting to verify order: ' . $order->order_id);
