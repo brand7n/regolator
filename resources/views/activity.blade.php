@@ -37,7 +37,7 @@
                         <tr>
                             <td class="px-4 py-3">{{ ($log->causer ?? $log->subject) ?? 'Unknown' }}</td>
                             <td class="px-4 py-3">{{ $log->description }}</td>
-                            <td class="px-4 py-3">{{ \Carbon\Carbon::parse($log->created_at)->timezone('America/New_York')->format('Y-m-d h:i A') }}</td>
+                            <td class="px-4 py-3">{{ \Illuminate\Support\\Carbon::parse($log->created_at)->timezone('America/New_York')->format('Y-m-d h:i A') }}</td>
                         </tr>
                     @empty
                         <tr>

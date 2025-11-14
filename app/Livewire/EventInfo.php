@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use App\Models\OrderStatus;
 
 class EventInfo extends Component
 {
@@ -47,7 +48,7 @@ class EventInfo extends Component
 
 	    // Only set status when we're creating a new one
 	    if (! $order->exists) {
-		$order->status = 'INVITED';
+			$order->status = OrderStatus::Invited;
 	    }
 
 	    $order->event_info = [

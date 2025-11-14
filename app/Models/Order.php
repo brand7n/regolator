@@ -15,11 +15,37 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 /**
- * @property \App\Models\OrderStatus $status
+ * @property int $id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property int|null $order_id
+ * @property int $user_id
+ * @property Carbon|null $verified_at
+ * @property int|null $event_id
+ * @property \App\Models\OrderStatus|null $status
+ * @property string|null $comment
+ * @property array<array-key, mixed>|null $event_info
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\Event|null $event
+ * @property-read User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereComment($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereEventInfo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereVerifiedAt($value)
+ * @mixin \Eloquent
+ *
+ * quiet phpstan error
  * @property string|null $user_name
- * @property array|null $event_info
- * @property \Carbon\Carbon $created_at
- * @property string $order_id
  */
 
 class Order extends Model
@@ -29,7 +55,7 @@ class Order extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'user_id',
@@ -37,6 +63,15 @@ class Order extends Model
 	    'status',
 	    'event_info',
     ];
+
+    /** @var list<string> */
+    protected $hidden = [];
+
+    /** @var list<string> */
+    protected $appends = [];
+
+    /** @var array<string, mixed> */
+    protected $attributes = [];
 
     public function getActivitylogOptions(): LogOptions
     {
