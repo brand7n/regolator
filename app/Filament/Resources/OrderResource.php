@@ -3,15 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\{KeyValue,Select,TextInput,Textarea};
 
 class OrderResource extends Resource
 {
@@ -23,11 +21,12 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user_id')->required(),
-                Forms\Components\TextInput::make('event_id')->required(),
-                Forms\Components\TextInput::make('order_id')->required(),
-                Forms\Components\TextInput::make('status')->required(),
-                Forms\Components\TextInput::make('comment'),
+                Select::make('user_id')->relationship('user', 'name'),
+                Select::make('event_id')->relationship('event', 'name'),
+                TextInput::make('order_id')->required(),
+                TextInput::make('status')->required(),
+                Textarea::make('comment'),
+		KeyValue::make('event_info')->label('Event Info'),
             ]);
     }
 
@@ -35,10 +34,27 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name'),
-                Tables\Columns\TextColumn::make('event.name'),
-                Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('comment'),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('User')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('event.name')
+                    ->label('Event')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('status')
+		    ->badge()
+                    ->searchable(),
+                // timestamps
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Updated')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 //

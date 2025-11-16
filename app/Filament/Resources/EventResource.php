@@ -3,15 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Pages;
-use App\Filament\Resources\EventResource\RelationManagers;
 use App\Models\Event;
-use Filament\Forms;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EventResource extends Resource
 {
@@ -23,7 +22,28 @@ class EventResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')->required(),
+                TextInput::make('name')->required(),
+                TextInput::make('location')->required(),
+                TextInput::make('lat')->required(),
+                TextInput::make('lon')->required(),
+                TextInput::make('base_price')
+                    ->prefix('$')
+                    ->numeric()
+                    ->formatStateUsing(fn ($state) => $state / 100)
+                    ->dehydrateStateUsing(fn ($state) => (int) round($state * 100)),
+                MarkdownEditor::make('description')
+                    ->columnSpanFull()
+                    ->required(),
+                DateTimePicker::make('starts_at')
+                    ->seconds(false)
+                    ->native(false)        // enable Filament’s JS datepicker
+                    ->displayFormat('Y-m-d H:i')
+                    ->required(),
+                DateTimePicker::make('ends_at')
+                    ->seconds(false)
+                    ->native(false)        // enable Filament’s JS datepicker
+                    ->displayFormat('Y-m-d H:i')
+                    ->required(),
             ]);
     }
 
