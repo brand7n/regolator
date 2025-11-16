@@ -77,7 +77,7 @@ class Paypal extends Component
 
     public function setOrderID($orderID)
     {
-        activity()->causedBy(auth()->id())->withProperties([
+        activity()->causedBy(auth()->user())->withProperties([
             'event' => $this->event,
             'transaction' => $orderID,
         ])->log('paypal OrderID set');
@@ -142,7 +142,7 @@ class Paypal extends Component
     public function accept_terms()
     {
         $this->terms_accepted = true;
-        activity()->causedBy(auth()->id())->log('terms accepted');
+        activity()->causedBy(auth()->user())->log('terms accepted');
         $this->dispatch('render-paypal');
     }
 
@@ -155,7 +155,7 @@ class Paypal extends Component
     // option to decline rego
     public function decline()
     {
-        activity()->causedBy(auth()->id())->log('rego declined');
+        activity()->causedBy(auth()->user())->log('rego declined');
         return redirect()->to('https://hashrego.com');
     }
 
