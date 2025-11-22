@@ -116,9 +116,9 @@
 
         @if (!$order)
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-                Please complete the requested info above. Just ignore the button below.
+                Please complete the requested info above before paying.
             </p>
-            <x-button class="py-3 items-center animate-bounce" wire:click="waitlist">Add to Waitlist</x-button>
+            <!--<x-button class="py-3 items-center animate-bounce" wire:click="waitlist">Add to Waitlist</x-button>-->
         @endif
 
         @if ($order && $order->status === \App\Models\OrderStatus::Waitlisted)
