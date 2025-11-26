@@ -1,0 +1,16 @@
+FROM php:8.4-fpm
+
+# Add only what Laravel actually needs beyond the base image:
+# - intl (needs libicu-dev)
+# - bcmath (no extra libs)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libicu-dev \
+        libzip-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install intl bcmath zip \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home/brandin/regolator
+
