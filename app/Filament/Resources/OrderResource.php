@@ -44,12 +44,6 @@ class OrderResource extends Resource
 		    ->badge()
                     ->searchable(),
                 // timestamps
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Updated')
                     ->dateTime()
@@ -66,7 +60,8 @@ class OrderResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+	    ])
+	    ->defaultSort('updated_at', 'desc');
     }
 
     public static function getRelations(): array
