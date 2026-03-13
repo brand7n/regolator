@@ -64,6 +64,8 @@ class Event extends Model
             ->logAll();
     }
 
+    protected $guarded = [];
+
     protected $casts = [
         'properties' => 'array',
         'starts_at' => 'datetime',

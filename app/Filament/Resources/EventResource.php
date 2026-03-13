@@ -26,6 +26,7 @@ class EventResource extends Resource
                 TextInput::make('location')->required(),
                 TextInput::make('lat')->required(),
                 TextInput::make('lon')->required(),
+                TextInput::make('kennel')->required(),
                 TextInput::make('base_price')
                     ->prefix('$')
                     ->numeric()
