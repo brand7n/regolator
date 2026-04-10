@@ -41,17 +41,17 @@ class EventResource extends Resource
                 MarkdownEditor::make('description')
                     ->columnSpanFull()
                     ->required(),
-                DateTimePicker::make(‘starts_at’)
+                DateTimePicker::make('starts_at')
                     ->seconds(false)
                     ->native(false)
-                    ->displayFormat(‘Y-m-d H:i’)
-                    ->timezone(‘America/New_York’)
+                    ->displayFormat('Y-m-d H:i')
+                    ->timezone('America/New_York')
                     ->required(),
-                DateTimePicker::make(‘ends_at’)
+                DateTimePicker::make('ends_at')
                     ->seconds(false)
                     ->native(false)
-                    ->displayFormat(‘Y-m-d H:i’)
-                    ->timezone(‘America/New_York’)
+                    ->displayFormat('Y-m-d H:i')
+                    ->timezone('America/New_York')
                     ->required(),
             ]);
     }
