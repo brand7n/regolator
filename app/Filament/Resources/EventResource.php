@@ -41,15 +41,17 @@ class EventResource extends Resource
                 MarkdownEditor::make('description')
                     ->columnSpanFull()
                     ->required(),
-                DateTimePicker::make('starts_at')
+                DateTimePicker::make(‘starts_at’)
                     ->seconds(false)
-                    ->native(false)        // enable Filament’s JS datepicker
-                    ->displayFormat('Y-m-d H:i')
+                    ->native(false)
+                    ->displayFormat(‘Y-m-d H:i’)
+                    ->timezone(‘America/New_York’)
                     ->required(),
-                DateTimePicker::make('ends_at')
+                DateTimePicker::make(‘ends_at’)
                     ->seconds(false)
-                    ->native(false)        // enable Filament’s JS datepicker
-                    ->displayFormat('Y-m-d H:i')
+                    ->native(false)
+                    ->displayFormat(‘Y-m-d H:i’)
+                    ->timezone(‘America/New_York’)
                     ->required(),
             ]);
     }

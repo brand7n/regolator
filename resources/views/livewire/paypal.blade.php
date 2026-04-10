@@ -115,6 +115,10 @@
         @endif
 
         @if (!$order)
+            <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+                Interested in this event? Add yourself to the waitlist!
+            </p>
+            <x-button class="py-3 items-center" wire:click="waitlist">Join Waitlist</x-button>
         @endif
 
         @if ($order && $order->status === \App\Models\OrderStatus::Waitlisted)
