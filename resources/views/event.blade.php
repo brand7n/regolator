@@ -30,7 +30,7 @@
                     </div>
                 @endif
                 @if($event->description)
-                    <div class="py-3 prose dark:prose-invert font-semibold text-gray-800 dark:text-gray-200">
+                    <div class="py-3 prose dark:prose-invert prose-strong:font-extrabold font-semibold text-gray-800 dark:text-gray-200">
                         {!! Str::markdown($event->description) !!}
                     </div>
                 @endif

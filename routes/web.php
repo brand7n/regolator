@@ -24,9 +24,6 @@ Route::middleware([
     Route::get('/events/{event}', function (\App\Models\Event $event) {
         return view('event', ['event' => $event]);
     })->name('events.show');
-    Route::get('/activity', function () {
-        return view('activity');
-    })->name('activity');
     // TODO: admin type routes
     // Route::get('/admin/users', function () {
     //     return view('users');

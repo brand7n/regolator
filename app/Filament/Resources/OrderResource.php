@@ -24,7 +24,7 @@ class OrderResource extends Resource
             ->schema([
                 Select::make('user_id')->relationship('user', 'name'),
                 Select::make('event_id')->relationship('event', 'name'),
-                TextInput::make('order_id'),
+                TextInput::make('order_id')->readOnly(),
                 Select::make('status')
                     ->options(OrderStatus::class)
                     ->required(),
