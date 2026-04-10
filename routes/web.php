@@ -16,8 +16,14 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $events = \App\Models\Event::where('ends_at', '>=', now())
+            ->orderBy('starts_at')
+            ->get();
+        return view('dashboard', ['events' => $events]);
     })->name('dashboard');
+    Route::get('/events/{event}', function (\App\Models\Event $event) {
+        return view('event', ['event' => $event]);
+    })->name('events.show');
     Route::get('/activity', function () {
         return view('activity');
     })->name('activity');

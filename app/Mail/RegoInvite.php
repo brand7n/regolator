@@ -15,15 +15,17 @@ class RegoInvite extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+    public $event;
     public $url;
     public $name;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $url)
+    public function __construct($user, $event, $url)
     {
         $this->user = $user;
+        $this->event = $event;
         $this->url = $url;
         $this->name = $user->name;
     }
@@ -34,7 +36,7 @@ class RegoInvite extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nittany Rego Invite for ' . $this->name,
+            subject: $this->event->name . ' Rego Invite for ' . $this->name,
         );
     }
 

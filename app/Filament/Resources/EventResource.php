@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -32,6 +33,11 @@ class EventResource extends Resource
                     ->numeric()
                     ->formatStateUsing(fn ($state) => $state / 100)
                     ->dehydrateStateUsing(fn ($state) => (int) round($state * 100)),
+                FileUpload::make('event_photo_path')
+                    ->label('Event Photo')
+                    ->image()
+                    ->directory('event-photos')
+                    ->visibility('public'),
                 MarkdownEditor::make('description')
                     ->columnSpanFull()
                     ->required(),

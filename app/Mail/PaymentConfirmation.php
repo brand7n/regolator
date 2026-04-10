@@ -14,24 +14,22 @@ class PaymentConfirmation extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+    public $event;
     public $url;
     public $name;
     public $kennel;
-    public $shirt_size;
-    public $short_bus;
     public $nerd_name;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $url)
+    public function __construct($user, $event, $url)
     {
         $this->user = $user;
+        $this->event = $event;
         $this->url = $url;
         $this->name = $user->name;
         $this->kennel = $user->kennel;
-        $this->shirt_size = $user->shirt_size;
-        $this->short_bus = $user->short_bus;
         $this->nerd_name = $user->nerd_name;
     }
 
@@ -41,7 +39,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Holidaze 2025 Payment Confirmation for ' . $this->name,
+            subject: $this->event->name . ' Payment Confirmation for ' . $this->name,
         );
     }
 

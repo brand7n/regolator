@@ -184,7 +184,9 @@ class Order extends Model
         $quick_login = Crypt::encryptString($user_data);
 
         try {
-            Mail::to($user)->send(new PaymentConfirmation($user, url('/quicklogin/' . $quick_login)));
+            $event = $this->event;
+            $eventUrl = route('events.show', $event);
+            Mail::to($user)->send(new PaymentConfirmation($user, $event, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
         } catch (\Throwable $t) {
             Log::error("failed to send payment confirmation email", [
                 'user' => $user,

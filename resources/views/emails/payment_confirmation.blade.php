@@ -1,8 +1,8 @@
 <x-mail::message>
-# Greetings from Nittany Valley, {{ $name }}
+# Greetings, {{ $name }}
 
 ## Payment Confirmation
-Your payment for Holidaze has been received!
+Your payment for {{ $event->name }} has been received!
 
 Please review your profile information, and if necessary edit by clicking the link below:
 

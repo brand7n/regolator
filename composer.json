@@ -17,7 +17,8 @@
         "laravel/tinker": "^2.9",
         "league/csv": "^9.24",
         "livewire/livewire": ">=3.6.4 <4.0",
-        "spatie/laravel-activitylog": "^4.8"
+        "spatie/laravel-activitylog": "^4.8",
+        "symfony/filesystem": "^8.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",

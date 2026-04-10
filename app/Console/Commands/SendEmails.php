@@ -17,7 +17,7 @@ class SendEmails extends Command
      *
      * @var string
      */
-    protected $signature = 'app:send-emails';
+    protected $signature = 'app:send-emails {eventId}';
 
     /**
      * The console command description.
@@ -31,7 +31,8 @@ class SendEmails extends Command
      */
     public function handle()
     {
-        $eventId = 1;
+        $eventId = $this->argument('eventId');
+        $event = Event::findOrFail($eventId);
         $users = User::whereHas('orders', function ($query) use ($eventId) {
                 $query->where('event_id', $eventId)
                       ->where('status', 'PAYMENT_VERIFIED');
@@ -41,8 +42,9 @@ class SendEmails extends Command
 
         foreach ($users as $user) {
             $quick_login = $user->getQuickLogin();
+            $eventUrl = route('events.show', $event);
 
-            $order = Order::where('user_id', $user->id)->where('event_id', 1)->first();
+            $order = Order::where('user_id', $user->id)->where('event_id', $eventId)->first();
             // if (!$order) {
             //     $this->info('Creating order');
             //     $order = new Order;
@@ -60,12 +62,12 @@ class SendEmails extends Command
             // if ($order->status == OrderStatus::PaymentVerified) {
             //     $this->info('User has already paid up, sending payment verification to ' . $user->name);
             //     try {
-            //         Mail::to($user)->send(new PaymentConfirmation($user, url('/quicklogin/' . $quick_login)));
+            //         Mail::to($user)->send(new PaymentConfirmation($user, $event, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
             //         activity()
             //             ->causedBy(auth()->user() ?? null)
             //             ->performedOn($user)
             //             ->withProperties([
-            //                 'event' => Event::findOrFail(1),
+            //                 'event' => $event,
             //                 'order' => $order,
             //             ])
             //             ->log('sent payment verification');
@@ -73,19 +75,19 @@ class SendEmails extends Command
             //         Log::error("failed to send email", [
             //             'user' => $user,
             //             'error' => $t,
-            //         ]);               
+            //         ]);
             //     }
             //     return;
-            // }       
+            // }
 
         //     $this->info('Sending invite to ' . $user->name);
         //     try {
-        //         Mail::to($user)->send(new RegoInvite($user, url('/quicklogin/' . $quick_login)));
+        //         Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
         //         activity()
         //             ->causedBy(auth()->user() ?? null)
         //             ->performedOn($user)
         //             ->withProperties([
-        //                 'event' => Event::findOrFail(1),
+        //                 'event' => $event,
         //                 'order' => $order,
         //             ])
         //             ->log('sent rego invite');
@@ -93,7 +95,7 @@ class SendEmails extends Command
         //         Log::error("failed to send email", [
         //             'user' => $user,
         //             'error' => $t,
-        //         ]);               
+        //         ]);
         //     }
         // }
 
@@ -101,12 +103,12 @@ class SendEmails extends Command
         // {
             $this->info('Sending reminder to ' . $user->name);
             try {
-                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login)));
+                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
                 activity()
                     ->causedBy(auth()->user() ?? null)
                     ->performedOn($user)
                     ->withProperties([
-                        'event' => Event::findOrFail(1),
+                        'event' => $event,
                         'order' => $order,
                     ])
                     ->log('sent rego reminder');
