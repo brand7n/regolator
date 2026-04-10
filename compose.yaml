@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   php:
     build:
@@ -9,7 +7,7 @@ services:
     container_name: regolator-php
     working_dir: /home/brandin/regolator
     volumes:
-      - /home/brandin/regolator:/home/brandin/regolator
+      - .:/home/brandin/regolator
     # Expose php-fpm to host Caddy only
     ports:
       - "127.0.0.1:9001:9000"
@@ -20,7 +18,7 @@ services:
     container_name: regolator-scheduler
     working_dir: /home/brandin/regolator
     volumes:
-      - /home/brandin/regolator:/home/brandin/regolator
+      - .:/home/brandin/regolator
     command: php artisan schedule:work
     depends_on:
       - php
@@ -31,8 +29,20 @@ services:
     container_name: regolator-nightwatch
     working_dir: /home/brandin/regolator
     volumes:
-      - /home/brandin/regolator:/home/brandin/regolator
+      - .:/home/brandin/regolator
     command: php artisan nightwatch:agent
     depends_on:
       - php
     restart: unless-stopped
+  caddy:
+    image: caddy:latest
+    container_name: regolator-caddy
+    profiles:
+      - local
+    ports:
+      - "80:80"
+    volumes:
+      - .:/home/brandin/regolator
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - php

@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\{KeyValue,Select,TextInput,Textarea};
+use App\Models\OrderStatus;
 
 class OrderResource extends Resource
 {
@@ -24,7 +25,9 @@ class OrderResource extends Resource
                 Select::make('user_id')->relationship('user', 'name'),
                 Select::make('event_id')->relationship('event', 'name'),
                 TextInput::make('order_id'),
-                TextInput::make('status')->required(),
+                Select::make('status')
+                    ->options(OrderStatus::class)
+                    ->required(),
                 Textarea::make('comment'),
 		KeyValue::make('event_info')->label('Event Info'),
             ]);
