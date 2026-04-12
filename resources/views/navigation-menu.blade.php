@@ -98,6 +98,12 @@
                             </x-dropdown-link>
 
 
+                            @if (auth()->user()->is_admin)
+                                <x-dropdown-link href="/admin">
+                                    {{ __('Admin') }}
+                                </x-dropdown-link>
+                            @endif
+
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                                 <x-dropdown-link href="{{ route('api-tokens.index') }}">
                                     {{ __('API Tokens') }}
