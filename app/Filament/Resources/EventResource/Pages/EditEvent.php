@@ -24,6 +24,11 @@ class EditEvent extends EditRecord
         $event = $this->record;
 
         return [
+            Actions\Action::make('view_event')
+                ->label('View Event')
+                ->icon('heroicon-o-eye')
+                ->url(route('events.show', $event))
+                ->openUrlInNewTab(),
             Actions\Action::make('invite_users')
                 ->label('Invite Users')
                 ->icon('heroicon-o-envelope')
