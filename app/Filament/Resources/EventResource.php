@@ -68,7 +68,14 @@ class EventResource extends Resource
                 Tables\Columns\TextColumn::make('name'),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('past')
+                    ->label('Past Events')
+                    ->default(false)
+                    ->queries(
+                        true: fn ($query) => $query->where('ends_at', '<', now()),
+                        false: fn ($query) => $query->where('ends_at', '>=', now()),
+                        blank: fn ($query) => $query,
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
