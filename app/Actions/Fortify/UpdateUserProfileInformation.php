@@ -6,11 +6,11 @@ use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
-use libphonenumber\PhoneNumberUtil;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
-use Illuminate\Validation\ValidationException;
+use libphonenumber\PhoneNumberUtil;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -75,14 +75,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         try {
             $parsed = $phoneUtil->parse($phone, 'US'); // use 'AUTO' or user country code
-            if (!$phoneUtil->isValidNumber($parsed)) {
+            if (! $phoneUtil->isValidNumber($parsed)) {
                 throw new \Exception('Invalid phone number');
             }
 
             // You can normalize to E.164 format (e.g., +15555551212)
             return $phoneUtil->format($parsed, PhoneNumberFormat::E164);
 
-        } catch (NumberParseException | \Exception $e) {
+        } catch (NumberParseException|\Exception $e) {
             throw ValidationException::withMessages([
                 'phone' => ['The phone number is not valid.'],
             ]);

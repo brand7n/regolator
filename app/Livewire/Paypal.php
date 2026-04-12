@@ -2,25 +2,36 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\Log;
-use Livewire\Component;
-use GuzzleHttp\Client;
+use App\Models\Event;
+use App\Models\Order;
+use App\Models\OrderStatus;
+use App\Models\User;
 use Auth;
 use Illuminate\Support\Carbon;
-use App\Models\{User, Order, OrderStatus, Event};
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 class Paypal extends Component
 {
     public $key;
+
     public $price;
+
     public string $event_tag;
+
     public ?Carbon $rego_paid_at = null;
+
     public $terms_accepted = false;
+
     public $bonus_accepted = false;
+
     public $name;
+
     public string $sandbox;
+
     public ?Order $order;
+
     public ?Event $event = null;
 
     public function mount(int $eventId)
@@ -46,7 +57,7 @@ class Paypal extends Component
 
     public function render()
     {
-        if (!$this->event) {
+        if (! $this->event) {
             return;
         }
 
@@ -72,6 +83,7 @@ class Paypal extends Component
         // TODO: check for pending status to prevent user from paying again?
 
         Log::info('render', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
+
         return view('livewire.paypal');
     }
 
@@ -98,6 +110,7 @@ class Paypal extends Component
             $order->save();
         } else {
             Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
+
             return;
         }
 
@@ -115,8 +128,9 @@ class Paypal extends Component
             ->where('order_id', $details['id'])
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             Log::error('no order found', ['user' => Auth::user(), 'order_id' => $details['id']]);
+
             return;
         }
 
@@ -128,14 +142,14 @@ class Paypal extends Component
     public function cancel()
     {
         // TODO: set order to accepted and clear order ID
-        Log::warning("transaction cancelled", ['user' => Auth::user()]);
+        Log::warning('transaction cancelled', ['user' => Auth::user()]);
         $this->dispatch('render-paypal');
     }
 
     public function error($err)
     {
         // TODO: set order to accepted and clear order ID
-        Log::error("transaction error", ['user' => Auth::user(), 'error' => $err]);
+        Log::error('transaction error', ['user' => Auth::user(), 'error' => $err]);
         $this->dispatch('render-paypal');
     }
 
@@ -148,7 +162,7 @@ class Paypal extends Component
 
     public function toggle_bonus()
     {
-        $this->bonus_accepted = !$this->bonus_accepted;
+        $this->bonus_accepted = ! $this->bonus_accepted;
         $this->dispatch('render-paypal');
     }
 
@@ -156,6 +170,7 @@ class Paypal extends Component
     public function decline()
     {
         activity()->causedBy(auth()->user())->log('rego declined');
+
         return redirect()->to('https://hashrego.com');
     }
 
@@ -164,12 +179,12 @@ class Paypal extends Component
         return redirect()->to('/user/profile');
     }
 
-    public function waitlist() 
+    public function waitlist()
     {
         /** @var User $user */
         $user = Auth::user();
 
-        //Log::info('waitlist', ['user' => Auth::user()]);
+        // Log::info('waitlist', ['user' => Auth::user()]);
         $this->order = Order::create([
             'user_id' => $user->id,
             'event_id' => $this->event->id,

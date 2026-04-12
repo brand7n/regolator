@@ -2,19 +2,22 @@
 
 namespace App\Livewire;
 
+use App\Models\Event;
 use Livewire\Component;
-use Illuminate\Support\Facades\Log;
 
 class LocationMap extends Component
 {
     public float $latitude;
+
     public float $longitude;
+
     public array $markers = [];
+
     public string $location;
 
     public function mount(int $eventId)
     {
-        $event = \App\Models\Event::findOrFail($eventId);
+        $event = Event::findOrFail($eventId);
         $this->latitude = $event->lat ?? 0.0;
         $this->longitude = $event->lon ?? 0.0;
         $this->location = nl2br(e($event->location));

@@ -2,24 +2,24 @@
 
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 use App\Mail\QuickLogin;
-use libphonenumber\PhoneNumberUtil;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
+use Livewire\Component;
 
 class QuickLoginForm extends Component
 {
     public $email = '';
+
     public $name = '';
+
     public $phone = '';
+
     public $userExists = null;
 
     public function checkEmail()
@@ -43,14 +43,14 @@ class QuickLoginForm extends Component
 
         try {
             $parsed = $phoneUtil->parse($this->phone, 'US'); // use 'AUTO' or user country code
-            if (!$phoneUtil->isValidNumber($parsed)) {
+            if (! $phoneUtil->isValidNumber($parsed)) {
                 throw new \Exception('Invalid phone number');
             }
 
             // You can normalize to E.164 format (e.g., +15555551212)
             $this->phone = $phoneUtil->format($parsed, PhoneNumberFormat::E164);
 
-        } catch (NumberParseException | \Exception $e) {
+        } catch (NumberParseException|\Exception $e) {
             $this->addError('phone', 'The phone number is not valid.');
         }
     }
@@ -81,10 +81,10 @@ class QuickLoginForm extends Component
     protected function sendMagicLink(User $user)
     {
         $quick_login = $user->getQuickLogin();
-        if (!$quick_login) {
+        if (! $quick_login) {
             return;
         }
-        Mail::to($user)->send(new QuickLogin($user, url('/quicklogin/' . $quick_login)));
+        Mail::to($user)->send(new QuickLogin($user, url('/quicklogin/'.$quick_login)));
         session()->flash('status', 'Login link sent. Check your email and SPAM folder!!');
         $this->reset(['name', 'userExists']);
     }

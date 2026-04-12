@@ -3,20 +3,23 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Headers;
+use Illuminate\Queue\SerializesModels;
 
 class RegoInvite extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $user;
+
     public $event;
+
     public $url;
+
     public $name;
 
     /**
@@ -36,7 +39,7 @@ class RegoInvite extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->event->name . ' Rego Invite for ' . $this->name,
+            subject: $this->event->name.' Rego Invite for '.$this->name,
         );
     }
 
@@ -59,7 +62,7 @@ class RegoInvite extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
@@ -68,7 +71,8 @@ class RegoInvite extends Mailable
 
     public function headers(): Headers
     {
-        $unsubscribeUrl = $this->url . '?action=unsubscribe';
+        $unsubscribeUrl = $this->url.'?action=unsubscribe';
+
         return new Headers(
             text: [
                 'List-Unsubscribe' => "<{$this->url}?action=unsubscribe>",

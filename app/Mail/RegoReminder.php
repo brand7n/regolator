@@ -3,25 +3,33 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Headers;
+use Illuminate\Queue\SerializesModels;
 
 class RegoReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $user;
+
     public $url;
+
     public $name;
+
     public $kennel;
+
     public $shirt_size;
+
     public $short_bus;
+
     public $nerd_name;
+
     public $phone;
+
     public $email;
 
     /**
@@ -46,7 +54,7 @@ class RegoReminder extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'NVHHH 1900th Weekend Event Guide for ' . $this->name,
+            subject: 'NVHHH 1900th Weekend Event Guide for '.$this->name,
         );
     }
 
@@ -62,7 +70,8 @@ class RegoReminder extends Mailable
 
     public function headers(): Headers
     {
-        $unsubscribeUrl = $this->url . '?action=unsubscribe';
+        $unsubscribeUrl = $this->url.'?action=unsubscribe';
+
         return new Headers(
             text: [
                 'List-Unsubscribe' => "<{$this->url}?action=unsubscribe>",
@@ -73,7 +82,7 @@ class RegoReminder extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

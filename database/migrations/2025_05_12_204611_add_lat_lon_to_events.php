@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -18,11 +18,11 @@ return new class extends Migration
         });
 
         DB::table('events')
-          ->where('event_tag', 'NVHHH1900')
-          ->update([
-              'lat' => 41.17809320205751,
-              'lon' => -77.54957166090036,
-          ]);
+            ->where('event_tag', 'NVHHH1900')
+            ->update([
+                'lat' => 41.17809320205751,
+                'lon' => -77.54957166090036,
+            ]);
     }
 
     /**

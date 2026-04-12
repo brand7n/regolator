@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //DB::statement("ALTER TABLE your_table DROP COLUMN column_name");
+        // DB::statement("ALTER TABLE your_table DROP COLUMN column_name");
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('rego_paid_at');
         });

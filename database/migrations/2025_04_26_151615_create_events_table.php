@@ -36,7 +36,7 @@ return new class extends Migration
 
         });
 
-        //$table->unique(['user_id', 'event_id'], 'orders_user_event_unique');
+        // $table->unique(['user_id', 'event_id'], 'orders_user_event_unique');
     }
 
     /**

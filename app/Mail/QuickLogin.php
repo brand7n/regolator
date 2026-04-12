@@ -3,8 +3,8 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -14,7 +14,9 @@ class QuickLogin extends Mailable
     use Queueable, SerializesModels;
 
     public string $user;
+
     public string $url;
+
     public string $name;
 
     /**
@@ -33,7 +35,7 @@ class QuickLogin extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Login Link for ' . $this->name,
+            subject: 'Login Link for '.$this->name,
         );
     }
 
@@ -50,7 +52,7 @@ class QuickLogin extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

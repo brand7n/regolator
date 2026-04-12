@@ -4,10 +4,12 @@ namespace App\Livewire;
 
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Laravel\Jetstream\Agent;
 use Livewire\Component;
 
@@ -44,7 +46,6 @@ class LogoutOtherBrowserSessionsForm extends Component
     /**
      * Log out from other browser sessions.
      *
-     * @param  \Illuminate\Contracts\Auth\StatefulGuard  $guard
      * @return void
      */
     public function logoutOtherBrowserSessions(StatefulGuard $guard)
@@ -95,7 +96,7 @@ class LogoutOtherBrowserSessionsForm extends Component
     /**
      * Get the current sessions.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getSessionsProperty()
     {
@@ -105,9 +106,9 @@ class LogoutOtherBrowserSessionsForm extends Component
 
         return collect(
             DB::connection(config('session.connection'))->table(config('session.table', 'sessions'))
-                    ->where('user_id', Auth::user()->getAuthIdentifier())
-                    ->orderBy('last_activity', 'desc')
-                    ->get()
+                ->where('user_id', Auth::user()->getAuthIdentifier())
+                ->orderBy('last_activity', 'desc')
+                ->get()
         )->map(function ($session) {
             return (object) [
                 'agent' => $this->createAgent($session),
@@ -122,17 +123,17 @@ class LogoutOtherBrowserSessionsForm extends Component
      * Create a new agent instance from the given session.
      *
      * @param  mixed  $session
-     * @return \Laravel\Jetstream\Agent
+     * @return Agent
      */
     protected function createAgent($session)
     {
-        return tap(new Agent(), fn ($agent) => $agent->setUserAgent($session->user_agent));
+        return tap(new Agent, fn ($agent) => $agent->setUserAgent($session->user_agent));
     }
 
     /**
      * Render the component.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function render()
     {

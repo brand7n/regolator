@@ -1,10 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Crypt;
+use App\Models\Event;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('dashboard');
@@ -16,12 +17,13 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        $events = \App\Models\Event::where('ends_at', '>=', now())
+        $events = Event::where('ends_at', '>=', now())
             ->orderBy('starts_at')
             ->get();
+
         return view('dashboard', ['events' => $events]);
     })->name('dashboard');
-    Route::get('/events/{event}', function (\App\Models\Event $event) {
+    Route::get('/events/{event}', function (Event $event) {
         return view('event', ['event' => $event]);
     })->name('events.show');
     // TODO: admin type routes
@@ -30,7 +32,7 @@ Route::middleware([
     // })->name('users');
 });
 
-Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request) {
+Route::get('quicklogin/{key}', function ($key, Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
@@ -40,6 +42,7 @@ Route::get('quicklogin/{key}', function($key, \Illuminate\Http\Request $request)
         activity()->causedBy($user)->log('quick login');
         $user->email_verified_at = Carbon::now();
         $user->save();
+
         return redirect($request->query('action', 'dashboard'));
     }
     abort(403, 'Invalid or expired login link.');

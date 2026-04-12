@@ -2,13 +2,14 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Order;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
 class ExportOrders extends Command
 {
     protected $signature = 'app:export-orders {eventId}';
+
     protected $description = 'Export user/order data for a specific event ID';
 
     public function handle()

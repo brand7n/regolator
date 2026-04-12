@@ -3,8 +3,8 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -14,10 +14,15 @@ class PaymentConfirmation extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+
     public $event;
+
     public $url;
+
     public $name;
+
     public $kennel;
+
     public $nerd_name;
 
     /**
@@ -39,7 +44,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->event->name . ' Payment Confirmation for ' . $this->name,
+            subject: $this->event->name.' Payment Confirmation for '.$this->name,
         );
     }
 
@@ -56,7 +61,7 @@ class PaymentConfirmation extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

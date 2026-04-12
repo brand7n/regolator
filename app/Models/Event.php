@@ -2,23 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 use Illuminate\Support\Carbon;
-use App\Models\{User, Order};
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property int $id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string $name
  * @property string $kennel
  * @property string $description
  * @property string|null $event_photo_path
- * @property \Illuminate\Support\Carbon $starts_at
- * @property \Illuminate\Support\Carbon $ends_at
+ * @property Carbon $starts_at
+ * @property Carbon $ends_at
  * @property string $location
  * @property array<array-key, mixed>|null $properties
  * @property int $created_by
@@ -27,11 +28,12 @@ use App\Models\{User, Order};
  * @property int $base_price
  * @property string|null $lat
  * @property string|null $lon
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property mixed $base_price_in_dollars
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Order> $orders
+ * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event query()
@@ -52,6 +54,7 @@ use App\Models\{User, Order};
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereProperties($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereStartsAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Event extends Model
@@ -85,24 +88,25 @@ class Event extends Model
         $this->base_price = (int) round($value * 100);
     }
 
-    public function orders() : HasMany
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    public function getOrder(User $user) : ?Order
+    public function getOrder(User $user): ?Order
     {
         return Order::where('user_id', $user->id)
             ->where('event_id', $this->id)
             ->first();
     }
 
-    public function regoPaidAt(User $user) : ?Carbon
+    public function regoPaidAt(User $user): ?Carbon
     {
         $order = $this->getOrder($user);
         if ($order && $order->status === OrderStatus::PaymentVerified) {
             return $order->verified_at;
         }
+
         return null;
     }
 }
