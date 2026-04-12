@@ -1,4 +1,5 @@
 <?php
+
 // app/Filament/Widgets/ActivityLogWidget.php
 
 namespace App\Filament\Widgets;
@@ -12,9 +13,9 @@ use Spatie\Activitylog\Models\Activity;
 class ActivityLogWidget extends BaseWidget
 {
     protected static ?string $heading = 'Activity Log';
-    
-    protected int | string | array $columnSpan = 'full';
-    
+
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?int $sort = 2; // Controls widget order on dashboard
 
     public function table(Table $table): Table
@@ -28,9 +29,7 @@ class ActivityLogWidget extends BaseWidget
             ->columns([
                 TextColumn::make('user')
                     ->label('User')
-                    ->getStateUsing(fn (Activity $record) => 
-                        $record->causer?->name ?? $record->subject?->name ?? 'Unknown'
-                    ),
+                    ->getStateUsing(fn (Activity $record) => optional($record->causer)->name ?? optional($record->subject)->name ?? 'Unknown'),
 
                 TextColumn::make('description')
                     ->label('Description')

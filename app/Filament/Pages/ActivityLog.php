@@ -28,9 +28,7 @@ class ActivityLog extends Page implements HasTable
             ->columns([
                 TextColumn::make('user')
                     ->label('User')
-                    ->getStateUsing(fn (Activity $record) =>
-                        $record->causer?->name ?? $record->subject?->name ?? 'Unknown'
-                    )
+                    ->getStateUsing(fn (Activity $record) => optional($record->causer)->name ?? optional($record->subject)->name ?? 'Unknown')
                     ->searchable(query: function ($query, string $search) {
                         $query->whereHas('causer', fn ($q) => $q->where('name', 'like', "%{$search}%"));
                     }),

@@ -3,8 +3,16 @@
 namespace App\Filament\Resources\EventResource\Pages;
 
 use App\Filament\Resources\EventResource;
+use App\Mail\RegoInvite;
+use App\Models\Event;
+use App\Models\Order;
+use App\Models\OrderStatus;
+use App\Models\User;
 use Filament\Actions;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Mail;
 
 class EditEvent extends EditRecord
 {
@@ -12,7 +20,52 @@ class EditEvent extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        /** @var Event $event */
+        $event = $this->record;
+
         return [
+            Actions\Action::make('invite_users')
+                ->label('Invite Users')
+                ->icon('heroicon-o-envelope')
+                ->form([
+                    Select::make('user_ids')
+                        ->label('Users')
+                        ->multiple()
+                        ->searchable()
+                        ->options(function () use ($event) {
+                            $existingUserIds = Order::where('event_id', $event->id)
+                                ->pluck('user_id');
+
+                            return User::whereNotIn('id', $existingUserIds)
+                                ->orderBy('name')
+                                ->pluck('name', 'id');
+                        })
+                        ->required(),
+                ])
+                ->action(function (array $data) use ($event) {
+                    $count = 0;
+
+                    foreach ($data['user_ids'] as $userId) {
+                        $user = User::findOrFail($userId);
+
+                        $order = Order::create([
+                            'user_id' => $user->id,
+                            'event_id' => $event->id,
+                            'status' => OrderStatus::Invited,
+                        ]);
+
+                        $quickLogin = $user->getQuickLogin($event->ends_at);
+                        $eventUrl = route('events.show', $event);
+
+                        Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+                        $count++;
+                    }
+
+                    Notification::make()
+                        ->title("Invited {$count} user(s)")
+                        ->success()
+                        ->send();
+                }),
             Actions\DeleteAction::make(),
         ];
     }

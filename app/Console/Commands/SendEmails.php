@@ -2,13 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\PaymentConfirmation;
+use App\Mail\RegoInvite;
+use App\Mail\RegoReminder;
+use App\Models\Event;
+use App\Models\Order;
+use App\Models\OrderStatus;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use App\Models\User;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\{RegoReminder, RegoInvite, PaymentConfirmation};
-use App\Models\{Event, Order, OrderStatus};
 
 class SendEmails extends Command
 {
@@ -34,14 +37,14 @@ class SendEmails extends Command
         $eventId = $this->argument('eventId');
         $event = Event::findOrFail($eventId);
         $users = User::whereHas('orders', function ($query) use ($eventId) {
-                $query->where('event_id', $eventId)
-                      ->where('status', 'PAYMENT_VERIFIED');
-            })
+            $query->where('event_id', $eventId)
+                ->where('status', 'PAYMENT_VERIFIED');
+        })
             ->orderBy('name')
             ->get();
 
         foreach ($users as $user) {
-            $quick_login = $user->getQuickLogin();
+            $quick_login = $user->getQuickLogin($event->ends_at);
             $eventUrl = route('events.show', $event);
 
             $order = Order::where('user_id', $user->id)->where('event_id', $eventId)->first();
@@ -56,6 +59,7 @@ class SendEmails extends Command
 
             if ($order->status == OrderStatus::Cancelled) {
                 $this->error('User has already been cancelled');
+
                 return;
             }
 
@@ -80,30 +84,30 @@ class SendEmails extends Command
             //     return;
             // }
 
-        //     $this->info('Sending invite to ' . $user->name);
-        //     try {
-        //         Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
-        //         activity()
-        //             ->causedBy(auth()->user() ?? null)
-        //             ->performedOn($user)
-        //             ->withProperties([
-        //                 'event' => $event,
-        //                 'order' => $order,
-        //             ])
-        //             ->log('sent rego invite');
-        //     } catch (\Throwable $t) {
-        //         Log::error("failed to send email", [
-        //             'user' => $user,
-        //             'error' => $t,
-        //         ]);
-        //     }
-        // }
+            //     $this->info('Sending invite to ' . $user->name);
+            //     try {
+            //         Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
+            //         activity()
+            //             ->causedBy(auth()->user() ?? null)
+            //             ->performedOn($user)
+            //             ->withProperties([
+            //                 'event' => $event,
+            //                 'order' => $order,
+            //             ])
+            //             ->log('sent rego invite');
+            //     } catch (\Throwable $t) {
+            //         Log::error("failed to send email", [
+            //             'user' => $user,
+            //             'error' => $t,
+            //         ]);
+            //     }
+            // }
 
-        // public function send_reminder()
-        // {
-            $this->info('Sending reminder to ' . $user->name);
+            // public function send_reminder()
+            // {
+            $this->info('Sending reminder to '.$user->name);
             try {
-                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/' . $quick_login . '?action=' . $eventUrl)));
+                Mail::to($user)->send(new RegoReminder($user, url('/quicklogin/'.$quick_login.'?action='.$eventUrl)));
                 activity()
                     ->causedBy(auth()->user() ?? null)
                     ->performedOn($user)
@@ -113,10 +117,10 @@ class SendEmails extends Command
                     ])
                     ->log('sent rego reminder');
             } catch (\Throwable $t) {
-                Log::error("failed to send email", [
+                Log::error('failed to send email', [
                     'user' => $user,
                     'error' => $t,
-                ]); 
+                ]);
             }
             sleep(1);
         }

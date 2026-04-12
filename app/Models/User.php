@@ -3,32 +3,37 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use App\Models\Order;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\{Crypt, Log};
-use Illuminate\Support\Str;
-use Filament\Models\Contracts\FilamentUser;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $email
- * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
  * @property int|null $current_team_id
  * @property string|null $profile_photo_path
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property string|null $kennel
@@ -38,13 +43,14 @@ use Filament\Models\Contracts\FilamentUser;
  * @property string|null $comment
  * @property int|null $invited_by_id
  * @property string|null $phone
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Order> $orders
+ * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
  * @property-read string $profile_photo_url
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
@@ -67,17 +73,18 @@ use Filament\Models\Contracts\FilamentUser;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorRecoveryCodes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
-
 class User extends Authenticatable implements FilamentUser
 {
-    //use HasApiTokens;
-    //use HasFactory;
+    // use HasApiTokens;
+    // use HasFactory;
     use HasProfilePhoto;
-    use Notifiable;
-    //use TwoFactorAuthenticatable;
+    // use TwoFactorAuthenticatable;
     use LogsActivity;
+
+    use Notifiable;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -144,30 +151,33 @@ class User extends Authenticatable implements FilamentUser
     // fake attribute since it's not in the database anymore
     public ?Carbon $rego_paid_at = null;
 
-    public function orders() : HasMany
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    public function getQuickLogin(int $expiresInHours = 0) : string
+    public function getQuickLogin(?Carbon $expiresAt = null): string
     {
-        $user_data = json_encode([
+        $data = [
             'hash' => $this->password,
             'id' => $this->id,
-        ]);
-        if ($expiresInHours > 0) {
-            $user_data['expires'] = Carbon::now()->addHours($expiresInHours)->toIso8601String();
+        ];
+        if ($expiresAt) {
+            $data['expires'] = $expiresAt->toIso8601String();
         }
-        Log::debug("quick login: " . $user_data);
+        $user_data = json_encode($data);
+        Log::debug('quick login: '.$user_data);
+
         return Crypt::encryptString($user_data);
     }
 
-    public static function fromQuickLogin(string $quick_login) : ?User
+    public static function fromQuickLogin(string $quick_login): ?User
     {
         try {
             $user_data = json_decode(Crypt::decryptString($quick_login), true);
             if (isset($user_data['expires']) && Carbon::parse($user_data['expires'])->isPast()) {
-                Log::warning("quick login expired", $user_data);
+                Log::warning('quick login expired', $user_data);
+
                 return null;
             }
             $user = User::where('id', $user_data['id'])->first();
@@ -175,12 +185,13 @@ class User extends Authenticatable implements FilamentUser
                 return $user;
             }
         } catch (\Exception $e) {
-            Log::error("error processing quick login: " . $e->getMessage());
+            Log::error('error processing quick login: '.$e->getMessage());
         }
+
         return null;
     }
 
-    public static function add(string $email, string $name) : User
+    public static function add(string $email, string $name): User
     {
         $user = new User;
         $user->name = $name;
@@ -188,10 +199,11 @@ class User extends Authenticatable implements FilamentUser
         $actual_password = Str::random(40);
         $user->password = $actual_password;
         $user->save();
+
         return $user;
     }
 
-    public function canAccessPanel(\Filament\Panel $panel): bool
+    public function canAccessPanel(Panel $panel): bool
     {
         return $this->id === 9;
     }

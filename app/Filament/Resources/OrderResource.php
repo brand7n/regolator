@@ -4,13 +4,16 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
-use Filament\Forms;
+use App\Models\OrderStatus;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\{KeyValue,Select,TextInput,Textarea};
-use App\Models\OrderStatus;
 
 class OrderResource extends Resource
 {
@@ -28,8 +31,12 @@ class OrderResource extends Resource
                 Select::make('status')
                     ->options(OrderStatus::class)
                     ->required(),
+                DateTimePicker::make('verified_at')
+                    ->seconds(false)
+                    ->native(false)
+                    ->timezone('America/New_York'),
                 Textarea::make('comment'),
-		KeyValue::make('event_info')->label('Event Info'),
+                KeyValue::make('event_info')->label('Event Info'),
             ]);
     }
 
@@ -44,7 +51,7 @@ class OrderResource extends Resource
                     ->label('Event')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
-		    ->badge()
+                    ->badge()
                     ->searchable(),
                 // timestamps
                 Tables\Columns\TextColumn::make('updated_at')
@@ -63,8 +70,8 @@ class OrderResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-	    ])
-	    ->defaultSort('updated_at', 'desc');
+            ])
+            ->defaultSort('updated_at', 'desc');
     }
 
     public static function getRelations(): array
