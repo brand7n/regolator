@@ -8,6 +8,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -41,6 +42,10 @@ class EventResource extends Resource
                 MarkdownEditor::make('description')
                     ->columnSpanFull()
                     ->required(),
+                TextInput::make('event_tag')->required(),
+                Toggle::make('private')
+                    ->label('Private (invite only)')
+                    ->default(true),
                 DateTimePicker::make('starts_at')
                     ->seconds(false)
                     ->native(false)

@@ -30,7 +30,7 @@ class Paypal extends Component
 
     public string $sandbox;
 
-    public ?Order $order;
+    public ?Order $order = null;
 
     public ?Event $event = null;
 
@@ -44,6 +44,7 @@ class Paypal extends Component
         $this->name = $user->name;
 
         $this->event = Event::findOrFail($eventId);
+        $this->order = $this->event->getOrder($user);
 
         Log::info('mount', ['event' => $this->event]);
     }
@@ -156,7 +157,31 @@ class Paypal extends Component
     public function accept_terms()
     {
         $this->terms_accepted = true;
-        activity()->causedBy(auth()->user())->log('terms accepted');
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        // For public events, create an order on terms acceptance
+        if (! $this->order && ! $this->event->private) {
+            $this->order = Order::create([
+                'user_id' => $user->id,
+                'event_id' => $this->event->id,
+                'status' => OrderStatus::Accepted,
+            ]);
+        }
+
+        // Free event: skip payment and go straight to verified
+        if ($this->order && $this->event->base_price <= 0) {
+            $this->order->verified_at = Carbon::now();
+            $this->order->status = OrderStatus::PaymentVerified;
+            $this->order->save();
+            $this->rego_paid_at = $this->order->verified_at;
+            activity()->causedBy($user)->log('free event registration completed');
+
+            return;
+        }
+
+        activity()->causedBy($user)->log('terms accepted');
         $this->dispatch('render-paypal');
     }
 
