@@ -91,6 +91,14 @@
         @if ($order && $order->status !== \App\Models\OrderStatus::Waitlisted)
             @if ($terms_accepted && !$rego_paid_at)
             <div class="space-y-4">
+                @foreach($addonDefinitions as $addon)
+                    <label class="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200 cursor-pointer">
+                        <input type="checkbox" wire:click="toggleAddon('{{ $addon['name'] }}')"
+                            {{ ($selected_addons[$addon['name']] ?? false) ? 'checked' : '' }}
+                            class="rounded border-gray-700 bg-gray-800 text-indigo-600 focus:ring-indigo-600">
+                        {{ $addon['label'] }} (+${{ number_format($addon['price'] / 100, 2) }})
+                    </label>
+                @endforeach
                 <p class="font-semibold text-gray-800 dark:text-gray-200">
                     TOTAL: ${{ number_format($price / 100, 2) }}
                 </p>

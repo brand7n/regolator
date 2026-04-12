@@ -50,7 +50,14 @@
             <livewire:location-map :event-id="$event->id" />
         </x-slot>
     </x-rego-section>
-    {{-- TODO: EVENT INFO section - will be driven dynamically from JSON fields --}}
+    @if(!empty(data_get($event->properties, 'fields')))
+    <x-rego-section>
+        <x-slot name="title">EVENT INFO</x-slot>
+        <x-slot name="content">
+            <livewire:event-info :event-id="$event->id"/>
+        </x-slot>
+    </x-rego-section>
+    @endif
     <x-rego-section>
         <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
         <x-slot name="content">

@@ -26,7 +26,11 @@ class Paypal extends Component
 
     public bool $terms_accepted = false;
 
-    public bool $bonus_accepted = false;
+    /** @var array<string, bool> */
+    public array $selected_addons = [];
+
+    /** @var array<int, array{name: string, label: string, price: int, tag_suffix?: string}> */
+    public array $addonDefinitions = [];
 
     public string $name;
 
@@ -47,6 +51,11 @@ class Paypal extends Component
 
         $this->event = Event::findOrFail($eventId);
         $this->order = $this->event->getOrder($user);
+        $this->addonDefinitions = data_get($this->event->properties, 'addons', []);
+
+        foreach ($this->addonDefinitions as $addon) {
+            $this->selected_addons[$addon['name']] = false;
+        }
 
         Log::info('mount', ['event' => $this->event]);
     }
@@ -67,10 +76,11 @@ class Paypal extends Component
         $this->price = $this->event->base_price;
         $this->event_tag = $this->event->event_tag;
 
-        // TODO: derive from event options
-        if ($this->bonus_accepted) {
-            $this->price += 11500;
-            $this->event_tag .= '_PLUS_EH3_32NDANAL';
+        foreach ($this->addonDefinitions as $addon) {
+            if ($this->selected_addons[$addon['name']] ?? false) {
+                $this->price += $addon['price'];
+                $this->event_tag .= $addon['tag_suffix'] ?? '';
+            }
         }
 
         /** @var User $user */
@@ -83,7 +93,6 @@ class Paypal extends Component
             Log::info('payment not verified: ', ['order' => $this->order]);
         }
         $this->rego_paid_at = $this->event->regoPaidAt($user);
-        // TODO: check for pending status to prevent user from paying again?
 
         Log::info('render', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
 
@@ -100,7 +109,6 @@ class Paypal extends Component
 
         /** @var User $user */
         $user = Auth::user();
-        // TODO: accepted
         $order = Order::whereIn('status', [OrderStatus::Invited->value, OrderStatus::Accepted, OrderStatus::PaypalPending->value])
             ->where('event_id', $this->event->id)
             ->where('user_id', $user->id)
@@ -120,7 +128,6 @@ class Paypal extends Component
         $this->skipRender();
     }
 
-    // TODO: sometimes this doesn't get called...what will the page do?
     /** @param array<string, mixed> $details */
     public function approve(array $details): void
     {
@@ -145,14 +152,12 @@ class Paypal extends Component
 
     public function cancel(): void
     {
-        // TODO: set order to accepted and clear order ID
         Log::warning('transaction cancelled', ['user' => Auth::user()]);
         $this->dispatch('render-paypal');
     }
 
     public function error(mixed $err): void
     {
-        // TODO: set order to accepted and clear order ID
         Log::error('transaction error', ['user' => Auth::user(), 'error' => $err]);
         $this->dispatch('render-paypal');
     }
@@ -164,7 +169,6 @@ class Paypal extends Component
         /** @var User $user */
         $user = Auth::user();
 
-        // For public events, create an order on terms acceptance
         if (! $this->order && ! $this->event->private) {
             $this->order = Order::create([
                 'user_id' => $user->id,
@@ -173,7 +177,6 @@ class Paypal extends Component
             ]);
         }
 
-        // Free event: skip payment and go straight to verified
         if ($this->order && $this->event->base_price <= 0) {
             $this->order->verified_at = Carbon::now();
             $this->order->status = OrderStatus::PaymentVerified;
@@ -188,13 +191,12 @@ class Paypal extends Component
         $this->dispatch('render-paypal');
     }
 
-    public function toggle_bonus(): void
+    public function toggleAddon(string $addonName): void
     {
-        $this->bonus_accepted = ! $this->bonus_accepted;
+        $this->selected_addons[$addonName] = ! ($this->selected_addons[$addonName] ?? false);
         $this->dispatch('render-paypal');
     }
 
-    // option to decline rego
     public function decline(): RedirectResponse
     {
         activity()->causedBy(auth()->user())->log('rego declined');
@@ -212,7 +214,6 @@ class Paypal extends Component
         /** @var User $user */
         $user = Auth::user();
 
-        // Log::info('waitlist', ['user' => Auth::user()]);
         $this->order = Order::create([
             'user_id' => $user->id,
             'event_id' => $this->event->id,

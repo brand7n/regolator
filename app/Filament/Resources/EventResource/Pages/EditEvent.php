@@ -12,7 +12,9 @@ use Filament\Actions;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class EditEvent extends EditRecord
 {
@@ -29,6 +31,18 @@ class EditEvent extends EditRecord
                 ->icon('heroicon-o-eye')
                 ->url(route('events.show', $event))
                 ->openUrlInNewTab(),
+            Actions\Action::make('export_orders')
+                ->label('Export CSV')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () use ($event) {
+                    Artisan::call('app:export-orders', ['eventId' => $event->id]);
+
+                    $filename = "exports/orders_{$event->id}.csv";
+
+                    return response()->streamDownload(function () use ($filename) {
+                        echo Storage::get($filename);
+                    }, "orders_{$event->id}.csv", ['Content-Type' => 'text/csv']);
+                }),
             Actions\Action::make('invite_users')
                 ->label('Invite Users')
                 ->icon('heroicon-o-envelope')

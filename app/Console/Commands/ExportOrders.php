@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Event;
 use App\Models\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -15,22 +16,16 @@ class ExportOrders extends Command
     public function handle(): int
     {
         $eventId = $this->argument('eventId');
+        $event = Event::findOrFail($eventId);
+        $fieldDefinitions = data_get($event->properties, 'fields', []);
+        $fieldNames = array_column($fieldDefinitions, 'name');
+
         $filename = "exports/orders_{$eventId}.csv";
-
         Storage::makeDirectory('exports');
-
         $handle = fopen(Storage::path($filename), 'w');
 
-        // CSV header
-        fputcsv($handle, [
-            'user_name',
-            'status',
-            'cabin_number',
-            'reserved_by',
-            'shot_stop',
-        ]);
+        fputcsv($handle, array_merge(['user_name', 'status'], $fieldNames));
 
-        // Query filtered by event id
         $orders = Order::query()
             ->select('orders.*', 'users.name as user_name')
             ->join('users', 'users.id', '=', 'orders.user_id')
@@ -39,18 +34,14 @@ class ExportOrders extends Command
 
         foreach ($orders as $order) {
             $info = $order->event_info ?? [];
-
-            fputcsv($handle, [
-                $order->user_name,
-                $order->status?->value,   // <-- Enum-safe CSV output
-                $info['cabin_number'] ?? null,
-                $info['reserved_by'] ?? null,
-                $info['shot_stop'] ?? null,
-            ]);
+            $row = [$order->user_name, $order->status?->value];
+            foreach ($fieldNames as $field) {
+                $row[] = $info[$field] ?? null;
+            }
+            fputcsv($handle, $row);
         }
 
         fclose($handle);
-
         $this->info("Export complete: storage/app/$filename");
 
         return Command::SUCCESS;
