@@ -64,6 +64,7 @@ class Order extends Model
         'event_id',
         'status',
         'event_info',
+        'verified_at',
     ];
 
     /** @var list<string> */
