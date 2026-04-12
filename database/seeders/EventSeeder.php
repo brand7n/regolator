@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class EventSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         Event::create([
             'name' => 'NVHHH #1900: NITTANY CALLING',

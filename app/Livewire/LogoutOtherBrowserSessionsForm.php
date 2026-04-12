@@ -96,7 +96,7 @@ class LogoutOtherBrowserSessionsForm extends Component
     /**
      * Get the current sessions.
      *
-     * @return Collection
+     * @return Collection<int, object{agent: Agent, ip_address: mixed, is_current_device: bool, last_active: string}&\stdClass>
      */
     public function getSessionsProperty()
     {

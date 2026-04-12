@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,7 @@ use Livewire\Component;
 
 class Regos extends Component
 {
+    /** @var Collection<int, User> */
     public Collection $regos;
 
     public string $orderby;
@@ -22,9 +24,10 @@ class Regos extends Component
 
     public int $event_id;
 
+    /** @var array<int, string> */
     protected array $sortable = ['rego_paid_at', 'name', 'kennel'];
 
-    public function mount(int $eventId)
+    public function mount(int $eventId): void
     {
         $this->regos = collect();
         $this->orderby = 'rego_paid_at';
@@ -33,7 +36,7 @@ class Regos extends Component
         $this->event_id = $eventId;
     }
 
-    public function render()
+    public function render(): View
     {
         if (! in_array($this->orderby, $this->sortable)) {
             $this->orderby = 'rego_paid_at';

@@ -72,7 +72,7 @@
         }
 
         Livewire.on('render-paypal', () => {
-            renderButton($wire.event_tag, $wire.name, $wire.price);
+            renderButton($wire.event_tag, $wire.name, ($wire.price / 100).toFixed(2));
         });
     </script>
     @endscript
@@ -92,7 +92,7 @@
             @if ($terms_accepted && !$rego_paid_at)
             <div class="space-y-4">
                 <p class="font-semibold text-gray-800 dark:text-gray-200">
-                    TOTAL: ${{ $price }}
+                    TOTAL: ${{ number_format($price / 100, 2) }}
                 </p>
             </div>
             @endif

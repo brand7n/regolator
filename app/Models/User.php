@@ -151,6 +151,7 @@ class User extends Authenticatable implements FilamentUser
     // fake attribute since it's not in the database anymore
     public ?Carbon $rego_paid_at = null;
 
+    /** @return HasMany<Order, $this> */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

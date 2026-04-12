@@ -4,6 +4,7 @@ namespace App\Livewire\Auth;
 
 use App\Mail\QuickLogin;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -14,15 +15,15 @@ use Livewire\Component;
 
 class QuickLoginForm extends Component
 {
-    public $email = '';
+    public string $email = '';
 
-    public $name = '';
+    public string $name = '';
 
-    public $phone = '';
+    public string $phone = '';
 
-    public $userExists = null;
+    public ?bool $userExists = null;
 
-    public function checkEmail()
+    public function checkEmail(): void
     {
         Log::info("checking {$this->email}");
 
@@ -37,7 +38,7 @@ class QuickLoginForm extends Component
         }
     }
 
-    protected function validatePhone()
+    protected function validatePhone(): void
     {
         $phoneUtil = PhoneNumberUtil::getInstance();
 
@@ -55,7 +56,7 @@ class QuickLoginForm extends Component
         }
     }
 
-    public function registerAndSendLink()
+    public function registerAndSendLink(): void
     {
         Log::info("creating {$this->email} for {$this->name}");
 
@@ -78,7 +79,7 @@ class QuickLoginForm extends Component
         $this->reset(['name', 'userExists']);
     }
 
-    protected function sendMagicLink(User $user)
+    protected function sendMagicLink(User $user): void
     {
         $quick_login = $user->getQuickLogin();
         if (! $quick_login) {
@@ -89,7 +90,7 @@ class QuickLoginForm extends Component
         $this->reset(['name', 'userExists']);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.auth.quick-login-form');
     }

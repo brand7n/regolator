@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -14,28 +15,28 @@ class RegoReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
+    public User $user;
 
-    public $url;
+    public string $url;
 
-    public $name;
+    public string $name;
 
-    public $kennel;
+    public ?string $kennel;
 
-    public $shirt_size;
+    public ?string $shirt_size;
 
-    public $short_bus;
+    public ?string $short_bus;
 
-    public $nerd_name;
+    public ?string $nerd_name;
 
-    public $phone;
+    public ?string $phone;
 
-    public $email;
+    public string $email;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $url)
+    public function __construct(User $user, string $url)
     {
         $this->user = $user;
         $this->url = $url;

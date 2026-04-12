@@ -22,6 +22,7 @@
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",
+        "calebdw/larastan-livewire": "^2.5",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.8",
         "laravel/pint": "^1.13",

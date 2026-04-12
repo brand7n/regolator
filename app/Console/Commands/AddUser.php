@@ -24,7 +24,7 @@ class AddUser extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $user = User::add($this->argument('email'), $this->argument('name'));
         // TODO: send email confirmation request

@@ -77,17 +77,18 @@ class Event extends Model
     ];
 
     // Accessor: get base_price in dollars
-    public function getBasePriceInDollarsAttribute()
+    public function getBasePriceInDollarsAttribute(): string
     {
         return number_format($this->base_price / 100, 2, '.', '');
     }
 
     // Mutator: set base_price from dollars
-    public function setBasePriceInDollarsAttribute($value)
+    public function setBasePriceInDollarsAttribute(float|string $value): void
     {
         $this->base_price = (int) round($value * 100);
     }
 
+    /** @return HasMany<Order, $this> */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

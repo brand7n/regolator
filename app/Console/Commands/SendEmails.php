@@ -32,7 +32,7 @@ class SendEmails extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $eventId = $this->argument('eventId');
         $event = Event::findOrFail($eventId);

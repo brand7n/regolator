@@ -4,28 +4,30 @@ namespace App\Livewire;
 
 use App\Models\Order;
 use App\Models\OrderStatus;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class EventInfo extends Component
 {
-    public $eventId;
+    public int $eventId;
 
-    public $order;
+    public ?Order $order = null;
 
-    public $cabin_number;
+    public ?int $cabin_number = null;
 
-    public $shot_stop;
+    public ?string $shot_stop = null;
 
-    public $reserved_by;
+    public ?string $reserved_by = null;
 
+    /** @var array<string, string> */
     protected $rules = [
         'cabin_number' => 'required|integer|between:1,15',
         'reserved_by' => 'required|string|max:512',
         'shot_stop' => 'nullable|string|max:512',
     ];
 
-    public function mount($eventId)
+    public function mount(int $eventId): void
     {
         $this->eventId = $eventId;
 
@@ -41,7 +43,7 @@ class EventInfo extends Component
         }
     }
 
-    public function submit()
+    public function submit(): void
     {
         $this->validate();
 
@@ -72,7 +74,7 @@ class EventInfo extends Component
         session()->flash('message', 'Cabin info saved!');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.event-info');
     }

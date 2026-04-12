@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\User;
 use Auth;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
@@ -14,19 +16,19 @@ use Livewire\Component;
 
 class Paypal extends Component
 {
-    public $key;
+    public string $key;
 
-    public $price;
+    public int $price;
 
     public string $event_tag;
 
     public ?Carbon $rego_paid_at = null;
 
-    public $terms_accepted = false;
+    public bool $terms_accepted = false;
 
-    public $bonus_accepted = false;
+    public bool $bonus_accepted = false;
 
-    public $name;
+    public string $name;
 
     public string $sandbox;
 
@@ -34,7 +36,7 @@ class Paypal extends Component
 
     public ?Event $event = null;
 
-    public function mount(int $eventId)
+    public function mount(int $eventId): void
     {
         $this->key = config('services.paypal.client_id');
         $this->sandbox = config('services.paypal.sandbox');
@@ -50,24 +52,24 @@ class Paypal extends Component
     }
 
     #[On('order-updated')]
-    public function handleUpdatedEvent()
+    public function handleUpdatedEvent(): void
     {
         Log::info('evented');
         $this->render();
     }
 
-    public function render()
+    public function render(): ?View
     {
         if (! $this->event) {
-            return;
+            return null;
         }
 
-        $this->price = $this->event->base_price_in_dollars;
+        $this->price = $this->event->base_price;
         $this->event_tag = $this->event->event_tag;
 
         // TODO: derive from event options
         if ($this->bonus_accepted) {
-            $this->price += 115;
+            $this->price += 11500;
             $this->event_tag .= '_PLUS_EH3_32NDANAL';
         }
 
@@ -88,7 +90,7 @@ class Paypal extends Component
         return view('livewire.paypal');
     }
 
-    public function setOrderID($orderID)
+    public function setOrderID(string $orderID): void
     {
         activity()->causedBy(auth()->user())->withProperties([
             'event' => $this->event,
@@ -119,7 +121,8 @@ class Paypal extends Component
     }
 
     // TODO: sometimes this doesn't get called...what will the page do?
-    public function approve($details)
+    /** @param array<string, mixed> $details */
+    public function approve(array $details): void
     {
         Log::info('on approve callback', ['user' => Auth::user(), 'details' => $details]);
 
@@ -140,21 +143,21 @@ class Paypal extends Component
         }
     }
 
-    public function cancel()
+    public function cancel(): void
     {
         // TODO: set order to accepted and clear order ID
         Log::warning('transaction cancelled', ['user' => Auth::user()]);
         $this->dispatch('render-paypal');
     }
 
-    public function error($err)
+    public function error(mixed $err): void
     {
         // TODO: set order to accepted and clear order ID
         Log::error('transaction error', ['user' => Auth::user(), 'error' => $err]);
         $this->dispatch('render-paypal');
     }
 
-    public function accept_terms()
+    public function accept_terms(): void
     {
         $this->terms_accepted = true;
 
@@ -185,26 +188,26 @@ class Paypal extends Component
         $this->dispatch('render-paypal');
     }
 
-    public function toggle_bonus()
+    public function toggle_bonus(): void
     {
         $this->bonus_accepted = ! $this->bonus_accepted;
         $this->dispatch('render-paypal');
     }
 
     // option to decline rego
-    public function decline()
+    public function decline(): RedirectResponse
     {
         activity()->causedBy(auth()->user())->log('rego declined');
 
         return redirect()->to('https://hashrego.com');
     }
 
-    public function edit()
+    public function edit(): RedirectResponse
     {
         return redirect()->to('/user/profile');
     }
 
-    public function waitlist()
+    public function waitlist(): void
     {
         /** @var User $user */
         $user = Auth::user();

@@ -12,7 +12,7 @@ class ExportOrders extends Command
 
     protected $description = 'Export user/order data for a specific event ID';
 
-    public function handle()
+    public function handle(): int
     {
         $eventId = $this->argument('eventId');
         $filename = "exports/orders_{$eventId}.csv";

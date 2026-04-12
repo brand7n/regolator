@@ -18,7 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property int|null $order_id
+ * @property string|null $order_id
  * @property int $user_id
  * @property Carbon|null $verified_at
  * @property int|null $event_id
@@ -96,12 +96,14 @@ class Order extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function event()
+    /** @return BelongsTo<Event, $this> */
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
@@ -170,7 +172,7 @@ class Order extends Model
         return false;
     }
 
-    protected function handle_payment_success()
+    protected function handle_payment_success(): void
     {
         $now = Carbon::now();
 

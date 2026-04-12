@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use App\Models\Event;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -13,22 +15,22 @@ class PaymentConfirmation extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
+    public User $user;
 
-    public $event;
+    public Event $event;
 
-    public $url;
+    public string $url;
 
-    public $name;
+    public string $name;
 
-    public $kennel;
+    public ?string $kennel;
 
-    public $nerd_name;
+    public ?string $nerd_name;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $event, $url)
+    public function __construct(User $user, Event $event, string $url)
     {
         $this->user = $user;
         $this->event = $event;
