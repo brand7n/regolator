@@ -24,6 +24,7 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('nerd name')->required(),
                 Forms\Components\TextInput::make('email')->email()->required(),
                 Forms\Components\TextInput::make('phone'),
+                Forms\Components\Toggle::make('is_admin')->label('Admin'),
             ]);
     }
 
