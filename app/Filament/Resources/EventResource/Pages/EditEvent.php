@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -74,6 +75,7 @@ class EditEvent extends EditRecord
                 ])
                 ->action(function (array $data) use ($event) {
                     $count = 0;
+                    $failed = 0;
 
                     foreach ($data['user_ids'] as $userId) {
                         $user = User::findOrFail($userId);
@@ -84,16 +86,30 @@ class EditEvent extends EditRecord
                             'status' => OrderStatus::Invited,
                         ]);
 
-                        $quickLogin = $user->getQuickLogin($event->ends_at);
-                        $eventUrl = route('events.show', $event);
+                        try {
+                            $quickLogin = $user->getQuickLogin($event->ends_at);
+                            $eventUrl = route('events.show', $event);
 
-                        Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
-                        $count++;
+                            Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+                            $count++;
+                        } catch (\Throwable $e) {
+                            Log::error('failed to send invite', [
+                                'user_id' => $user->id,
+                                'order_id' => $order->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                            $failed++;
+                        }
+                    }
+
+                    $msg = "Invited {$count} user(s)";
+                    if ($failed) {
+                        $msg .= ", {$failed} failed to send";
                     }
 
                     Notification::make()
-                        ->title("Invited {$count} user(s)")
-                        ->success()
+                        ->title($msg)
+                        ->status($failed ? 'warning' : 'success')
                         ->send();
                 }),
             Actions\DeleteAction::make(),

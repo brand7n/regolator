@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class OrderResource extends Resource
@@ -80,6 +81,7 @@ class OrderResource extends Resource
                         ->action(function (Collection $records) {
                             $count = 0;
                             $skipped = 0;
+                            $failed = 0;
                             /** @var Order $order */
                             foreach ($records as $order) {
                                 if ($order->status === OrderStatus::PaymentVerified) {
@@ -91,23 +93,35 @@ class OrderResource extends Resource
                                 $order->status = OrderStatus::Invited;
                                 $order->save();
 
-                                $user = $order->user;
-                                $event = $order->event;
-                                $quickLogin = $user->getQuickLogin($event->ends_at);
-                                $eventUrl = route('events.show', $event);
+                                try {
+                                    $user = $order->user;
+                                    $event = $order->event;
+                                    $quickLogin = $user->getQuickLogin($event->ends_at);
+                                    $eventUrl = route('events.show', $event);
 
-                                Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
-                                $count++;
+                                    Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+                                    $count++;
+                                } catch (\Throwable $e) {
+                                    Log::error('failed to send invite', [
+                                        'user_id' => $order->user_id,
+                                        'order_id' => $order->id,
+                                        'error' => $e->getMessage(),
+                                    ]);
+                                    $failed++;
+                                }
                             }
 
                             $msg = "Invited {$count} user(s)";
                             if ($skipped) {
                                 $msg .= ", skipped {$skipped} already paid";
                             }
+                            if ($failed) {
+                                $msg .= ", {$failed} failed to send";
+                            }
 
                             Notification::make()
                                 ->title($msg)
-                                ->success()
+                                ->status($failed ? 'warning' : 'success')
                                 ->send();
                         }),
                     Tables\Actions\DeleteBulkAction::make(),

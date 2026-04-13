@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderStatus;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EditOrder extends EditRecord
@@ -27,12 +28,19 @@ class EditOrder extends EditRecord
         $order = $this->record;
 
         if ($order->status === OrderStatus::Invited && $order->wasChanged('status')) {
-            $user = $order->user;
-            $event = $order->event;
-            $quickLogin = $user->getQuickLogin($event->ends_at);
-            $eventUrl = route('events.show', $event);
+            try {
+                $user = $order->user;
+                $event = $order->event;
+                $quickLogin = $user->getQuickLogin($event->ends_at);
+                $eventUrl = route('events.show', $event);
 
-            Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+                Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+            } catch (\Throwable $e) {
+                Log::error('failed to send invite on order edit', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }

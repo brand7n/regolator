@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.5",
+        "bepsvpt/secure-headers": "^9.1",
         "doctrine/dbal": "^4.2",
         "filament/filament": "^3.3",
         "giggsey/libphonenumber-for-php": "^9.0",
