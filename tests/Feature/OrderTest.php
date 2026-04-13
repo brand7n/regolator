@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function () {
@@ -150,4 +151,93 @@ test('activity log uses logOnlyDirty', function () {
 
     // Should not log a new activity when nothing changed
     expect($order->activities()->count())->toBe($initialCount);
+});
+
+test('verify returns true and processes payment on completed paypal order', function () {
+    Http::fake([
+        '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
+        '*/v2/checkout/orders/*' => Http::response(['status' => 'COMPLETED', 'id' => 'PAYPAL123']),
+    ]);
+
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaypalPending,
+    ]);
+    $order->order_id = 'PAYPAL123';
+    $order->save();
+
+    $result = $order->verify();
+
+    $order->refresh();
+    expect($result)->toBeTrue()
+        ->and($order->status)->toBe(OrderStatus::PaymentVerified)
+        ->and($order->verified_at)->not->toBeNull();
+
+    Mail::assertSent(PaymentConfirmation::class);
+});
+
+test('verify returns false on non-completed paypal order', function () {
+    Http::fake([
+        '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
+        '*/v2/checkout/orders/*' => Http::response(['status' => 'CREATED', 'id' => 'PAYPAL123']),
+    ]);
+
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaypalPending,
+    ]);
+    $order->order_id = 'PAYPAL123';
+    $order->save();
+
+    $result = $order->verify();
+
+    $order->refresh();
+    expect($result)->toBeFalse()
+        ->and($order->status)->toBe(OrderStatus::PaypalPending);
+
+    Mail::assertNothingSent();
+});
+
+test('verify returns false on paypal api error', function () {
+    Http::fake([
+        '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
+        '*/v2/checkout/orders/*' => Http::response(['error' => 'NOT_FOUND'], 404),
+    ]);
+
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaypalPending,
+    ]);
+    $order->order_id = 'INVALID';
+    $order->save();
+
+    $result = $order->verify();
+
+    expect($result)->toBeFalse();
+    Mail::assertNothingSent();
+});
+
+test('verify returns false on network exception', function () {
+    Http::fake([
+        '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
+        '*/v2/checkout/orders/*' => function () {
+            throw new Exception('Connection timeout');
+        },
+    ]);
+
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaypalPending,
+    ]);
+    $order->order_id = 'PAYPAL123';
+    $order->save();
+
+    $result = $order->verify();
+
+    expect($result)->toBeFalse();
+    Mail::assertNothingSent();
 });

@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Mail\PaymentConfirmation;
-use GuzzleHttp\Client;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\LogOptions;
@@ -120,32 +120,23 @@ class Order extends Model
     {
         $sandbox = config('services.paypal.sandbox');
         try {
-            $client = new Client;
-
-            $response = $client->post("https://api-m.{$sandbox}paypal.com/v1/oauth2/token", [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ],
-                'auth' => [
+            $tokenResponse = Http::asForm()
+                ->withBasicAuth(
                     config('services.paypal.client_id'),
                     config('services.paypal.client_secret'),
-                ],
-                'form_params' => [
+                )
+                ->post("https://api-m.{$sandbox}paypal.com/v1/oauth2/token", [
                     'grant_type' => 'client_credentials',
-                ],
-            ]);
+                ]);
 
-            $bearer_token = json_decode($response->getBody(), true)['access_token'];
+            $bearer_token = $tokenResponse->json('access_token');
 
-            $response = $client->get("https://api.{$sandbox}paypal.com/v2/checkout/orders/".$this->order_id, [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Authorization' => 'Bearer '.$bearer_token,
-                ],
-            ]);
+            $orderResponse = Http::withToken($bearer_token)
+                ->accept('application/json')
+                ->get("https://api.{$sandbox}paypal.com/v2/checkout/orders/{$this->order_id}");
 
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode($response->getBody()->getContents(), true);
+            if ($orderResponse->successful()) {
+                $data = $orderResponse->json();
 
                 if (isset($data['status']) && $data['status'] === 'COMPLETED') {
                     activity()
@@ -166,8 +157,8 @@ class Order extends Model
             } else {
                 Log::error('failed to verify order', [
                     'order' => $this,
-                    'code' => $response->getStatusCode(),
-                    'response' => $response->getReasonPhrase(),
+                    'code' => $orderResponse->status(),
+                    'response' => $orderResponse->body(),
                 ]);
             }
         } catch (\Throwable $t) {
