@@ -139,6 +139,11 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function setEmailAttribute(string $value): void
+    {
+        $this->attributes['email'] = strtolower($value);
+    }
+
     /**
      * The model's default values for attributes.
      *

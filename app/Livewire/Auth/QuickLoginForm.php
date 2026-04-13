@@ -28,6 +28,7 @@ class QuickLoginForm extends Component
         Log::info("checking {$this->email}");
 
         $this->validate(['email' => 'required|email']);
+        $this->email = strtolower($this->email);
         $user = User::where('email', $this->email)->first();
 
         if ($user) {
