@@ -66,6 +66,7 @@ class EditEvent extends EditRecord
                                         . '<br><span class="text-xs text-gray-400">'
                                         . e($user->email)
                                         . ($user->kennel ? ' · ' . e($user->kennel) : '')
+                                        . ($user->nerd_name ? ' · ' . e($user->nerd_name) : '')
                                         . '</span></div>',
                                 ]);
                         })
