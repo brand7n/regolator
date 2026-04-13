@@ -51,12 +51,11 @@ class EditEvent extends EditRecord
                         ->label('Users')
                         ->multiple()
                         ->searchable()
-                        ->getSearchResultsUsing(function (string $search) use ($event) {
+                        ->options(function () use ($event) {
                             $existingUserIds = Order::where('event_id', $event->id)
                                 ->pluck('user_id');
 
                             return User::whereNotIn('id', $existingUserIds)
-                                ->where('name', 'like', "%{$search}%")
                                 ->orderBy('name')
                                 ->pluck('name', 'id');
                         })
