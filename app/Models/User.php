@@ -172,18 +172,23 @@ class User extends Authenticatable implements FilamentUser
         return Crypt::encryptString($user_data);
     }
 
-    public static function fromQuickLogin(string $quick_login): ?User
+    /**
+     * @return array{user: User, expires_at: string|null}|null
+     */
+    public static function fromQuickLogin(string $quick_login): ?array
     {
         try {
             $user_data = json_decode(Crypt::decryptString($quick_login), true);
-            if (isset($user_data['expires']) && Carbon::parse($user_data['expires'])->isPast()) {
+            $expiresAt = $user_data['expires'] ?? null;
+
+            if ($expiresAt && Carbon::parse($expiresAt)->isPast()) {
                 Log::warning('quick login expired', $user_data);
 
                 return null;
             }
             $user = User::where('id', $user_data['id'])->first();
-            if ($user->password === $user_data['hash']) {
-                return $user;
+            if ($user && $user->password === $user_data['hash']) {
+                return ['user' => $user, 'expires_at' => $expiresAt];
             }
         } catch (\Exception $e) {
             Log::error('error processing quick login: '.$e->getMessage());

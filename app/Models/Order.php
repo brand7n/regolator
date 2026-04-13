@@ -79,7 +79,15 @@ class Order extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll();
+            ->logAll()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(function (string $eventName): string {
+                $status = optional($this->status)->value ?? 'unknown';
+                $userName = optional($this->user)->name ?? 'unknown';
+                $event = optional($this->event)->name ?? 'unknown';
+
+                return "order {$eventName}: {$userName} → {$event} ({$status})";
+            });
     }
 
     /**

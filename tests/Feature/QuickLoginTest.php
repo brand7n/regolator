@@ -110,7 +110,19 @@ test('fromQuickLogin returns user for valid token', function () {
     $result = User::fromQuickLogin($token);
 
     expect($result)->not->toBeNull()
-        ->and($result->id)->toBe($this->user->id);
+        ->and($result['user']->id)->toBe($this->user->id)
+        ->and($result['expires_at'])->toBeNull();
+});
+
+test('fromQuickLogin includes expiry when set', function () {
+    $expiresAt = Carbon::parse('2026-12-31 23:59:59');
+    $token = $this->user->getQuickLogin($expiresAt);
+
+    $result = User::fromQuickLogin($token);
+
+    expect($result)->not->toBeNull()
+        ->and($result['expires_at'])->not->toBeNull()
+        ->and(Carbon::parse($result['expires_at'])->toDateTimeString())->toBe('2026-12-31 23:59:59');
 });
 
 test('fromQuickLogin returns null for expired token', function () {

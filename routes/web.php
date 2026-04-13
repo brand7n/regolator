@@ -36,10 +36,14 @@ Route::get('quicklogin/{key}', function ($key, Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
-    $user = User::fromQuickLogin($key);
-    if ($user) {
-        Auth::login($user); // login user automatically
-        activity()->causedBy($user)->log('quick login');
+    $result = User::fromQuickLogin($key);
+    if ($result) {
+        $user = $result['user'];
+        Auth::login($user);
+        activity()->causedBy($user)->withProperties([
+            'expires_at' => $result['expires_at'],
+            'ip' => $request->ip(),
+        ])->log('quick login');
         $user->email_verified_at = Carbon::now();
         $user->save();
 
