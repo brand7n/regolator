@@ -21,7 +21,7 @@ test('known email sends magic link', function () {
         ->set('email', 'exists@example.com')
         ->call('checkEmail');
 
-    Mail::assertSent(QuickLogin::class, function ($mail) {
+    Mail::assertQueued(QuickLogin::class, function ($mail) {
         return $mail->hasTo('exists@example.com');
     });
 });
@@ -47,7 +47,7 @@ test('email is normalized to lowercase on check', function () {
         ->call('checkEmail')
         ->assertSet('email', 'upper@example.com');
 
-    Mail::assertSent(QuickLogin::class);
+    Mail::assertQueued(QuickLogin::class);
 });
 
 test('checkEmail validates email format', function () {
@@ -69,7 +69,7 @@ test('registerAndSendLink creates user and sends email', function () {
         ->and($user->name)->toBe('New User')
         ->and($user->phone)->not->toBeNull();
 
-    Mail::assertSent(QuickLogin::class, function ($mail) {
+    Mail::assertQueued(QuickLogin::class, function ($mail) {
         return $mail->hasTo('newuser@example.com');
     });
 });

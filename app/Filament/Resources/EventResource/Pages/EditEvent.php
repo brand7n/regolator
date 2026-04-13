@@ -87,7 +87,8 @@ class EditEvent extends EditRecord
                         $quickLogin = $user->getQuickLogin($event->ends_at);
                         $eventUrl = route('events.show', $event);
 
-                        Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
+                        $mail = new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl));
+                        Mail::to($user)->later(now()->addSeconds($count * 5), $mail);
                         $count++;
                     }
 

@@ -37,7 +37,7 @@ test('quick login form sends magic link email', function () {
         ->set('email', 'test@example.com')
         ->call('checkEmail');
 
-    Mail::assertSent(QuickLogin::class, function ($mail) {
+    Mail::assertQueued(QuickLogin::class, function ($mail) {
         return $mail->hasTo('test@example.com');
     });
 });

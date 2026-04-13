@@ -117,7 +117,7 @@ test('handle_payment_success sets status and sends confirmation', function () {
     expect($order->status)->toBe(OrderStatus::PaymentVerified)
         ->and($order->verified_at)->not->toBeNull();
 
-    Mail::assertSent(PaymentConfirmation::class, function ($mail) {
+    Mail::assertQueued(PaymentConfirmation::class, function ($mail) {
         return $mail->hasTo('test@example.com');
     });
 });
@@ -174,7 +174,7 @@ test('verify returns true and processes payment on completed paypal order', func
         ->and($order->status)->toBe(OrderStatus::PaymentVerified)
         ->and($order->verified_at)->not->toBeNull();
 
-    Mail::assertSent(PaymentConfirmation::class);
+    Mail::assertQueued(PaymentConfirmation::class);
 });
 
 test('verify returns false on non-completed paypal order', function () {

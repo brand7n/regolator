@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
+use App\Mail\RegoInvite;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use Filament\Forms\Components\DateTimePicker;
@@ -11,9 +12,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class OrderResource extends Resource
 {
@@ -68,6 +72,32 @@ class OrderResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('send_invites')
+                        ->label('Send Invites')
+                        ->icon('heroicon-o-envelope')
+                        ->requiresConfirmation()
+                        ->deselectRecordsAfterCompletion()
+                        ->action(function (Collection $records) {
+                            $count = 0;
+                            foreach ($records as $order) {
+                                $order->status = OrderStatus::Invited;
+                                $order->save();
+
+                                $user = $order->user;
+                                $event = $order->event;
+                                $quickLogin = $user->getQuickLogin($event->ends_at);
+                                $eventUrl = route('events.show', $event);
+
+                                $mail = new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl));
+                                Mail::to($user)->later(now()->addSeconds($count * 5), $mail);
+                                $count++;
+                            }
+
+                            Notification::make()
+                                ->title("Invited {$count} user(s)")
+                                ->success()
+                                ->send();
+                        }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
