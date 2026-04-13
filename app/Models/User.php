@@ -15,7 +15,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -205,18 +204,6 @@ class User extends Authenticatable implements FilamentUser
         }
 
         return null;
-    }
-
-    public static function add(string $email, string $name): User
-    {
-        $user = new User;
-        $user->name = $name;
-        $user->email = $email;
-        $actual_password = Str::random(40);
-        $user->password = $actual_password;
-        $user->save();
-
-        return $user;
     }
 
     public function canAccessPanel(Panel $panel): bool

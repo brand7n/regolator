@@ -69,3 +69,46 @@ test('rego invite includes unsubscribe header', function () {
     $headers = $mail->headers();
     expect($headers->text)->toHaveKey('List-Unsubscribe');
 });
+
+test('quick login email renders with login url', function () {
+    $mail = new QuickLogin($this->user, 'https://example.com/quicklogin/abc123');
+
+    $rendered = $mail->render();
+
+    expect($rendered)->toContain('https://example.com/quicklogin/abc123');
+});
+
+test('rego invite email renders with event and user details', function () {
+    $mail = new RegoInvite($this->user, $this->event, 'https://example.com/login');
+
+    $rendered = $mail->render();
+
+    expect($rendered)->toContain('https://example.com/login')
+        ->and($rendered)->toContain('Test User')
+        ->and($rendered)->toContain('Mail Test Event');
+});
+
+test('payment confirmation email renders with event and user details', function () {
+    $mail = new PaymentConfirmation($this->user, $this->event, 'https://example.com/login');
+
+    $rendered = $mail->render();
+
+    expect($rendered)->toContain('https://example.com/login')
+        ->and($rendered)->toContain('Test User')
+        ->and($rendered)->toContain('Mail Test Event');
+});
+
+test('quick login email has no attachments', function () {
+    $mail = new QuickLogin($this->user, 'https://example.com/quicklogin/abc123');
+    expect($mail->attachments())->toBe([]);
+});
+
+test('rego invite email has no attachments', function () {
+    $mail = new RegoInvite($this->user, $this->event, 'https://example.com/login');
+    expect($mail->attachments())->toBe([]);
+});
+
+test('payment confirmation email has no attachments', function () {
+    $mail = new PaymentConfirmation($this->user, $this->event, 'https://example.com/login');
+    expect($mail->attachments())->toBe([]);
+});
