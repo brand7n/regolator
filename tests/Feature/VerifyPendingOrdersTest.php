@@ -33,7 +33,11 @@ beforeEach(function () {
 test('verifies recent pending orders via paypal', function () {
     Http::fake([
         '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
-        '*/v2/checkout/orders/*' => Http::response(['status' => 'COMPLETED', 'id' => 'PP123']),
+        '*/v2/checkout/orders/*' => Http::response([
+            'status' => 'COMPLETED',
+            'id' => 'PP123',
+            'purchase_units' => [['amount' => ['value' => '50.00']]],
+        ]),
     ]);
 
     $order = Order::create([
