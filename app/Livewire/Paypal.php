@@ -57,13 +57,11 @@ class Paypal extends Component
             $this->selected_addons[$addon['name']] = false;
         }
 
-        Log::info('mount', ['event' => $this->event]);
     }
 
     #[On('order-updated')]
     public function handleUpdatedEvent(): void
     {
-        Log::info('evented');
         $this->render();
     }
 
@@ -88,13 +86,8 @@ class Paypal extends Component
         $this->order = $this->event->getOrder($user);
         if ($this->order && $this->order->status === OrderStatus::PaymentVerified) {
             $this->rego_paid_at = $this->order->verified_at;
-            Log::info('payment verified: ', ['rego_paid_at' => $this->rego_paid_at]);
-        } else {
-            Log::info('payment not verified: ', ['order' => $this->order]);
         }
         $this->rego_paid_at = $this->event->regoPaidAt($user);
-
-        Log::info('render', ['price' => $this->price, 'rego_paid_at' => $this->rego_paid_at]);
 
         return view('livewire.paypal');
     }

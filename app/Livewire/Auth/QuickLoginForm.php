@@ -58,8 +58,6 @@ class QuickLoginForm extends Component
 
     public function registerAndSendLink(): void
     {
-        Log::info("creating {$this->email} for {$this->name}");
-
         $this->validate([
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string',
@@ -67,7 +65,7 @@ class QuickLoginForm extends Component
         ]);
         $this->validatePhone();
 
-        Log::info("creating {$this->email} for {$this->name}");
+        Log::info("creating user {$this->email} for {$this->name}");
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,

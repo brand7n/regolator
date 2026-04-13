@@ -168,7 +168,6 @@ class User extends Authenticatable implements FilamentUser
             $data['expires'] = $expiresAt->toIso8601String();
         }
         $user_data = json_encode($data);
-        Log::debug('quick login: '.$user_data);
 
         return Crypt::encryptString($user_data);
     }
