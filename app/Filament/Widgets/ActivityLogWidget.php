@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Spatie\Activitylog\Models\Activity;
 
@@ -43,9 +44,9 @@ class ActivityLogWidget extends BaseWidget
                         $type = $record->subject_type ? class_basename($record->subject_type) : null;
 
                         if ($subject) {
+                            /** @var Model&object{name?: string, id: int} $subject */
                             return match ($type) {
-                                'User' => $subject->name,
-                                'Event' => $subject->name,
+                                'User', 'Event' => $subject->name ?? "{$type} #{$subject->id}",
                                 'Order' => "Order #{$subject->id}",
                                 default => "{$type} #{$subject->id}",
                             };
@@ -73,6 +74,7 @@ class ActivityLogWidget extends BaseWidget
 
                         $ignore = ['updated_at', 'remember_token', 'email_verified_at', 'password'];
                         if ($old) {
+                            /** @var array<string, mixed> $changed */
                             $fields = collect($changed)
                                 ->filter(fn ($value, $key) => ! in_array($key, $ignore) && ($value !== ($old[$key] ?? null)))
                                 ->keys()
