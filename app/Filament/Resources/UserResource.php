@@ -21,9 +21,22 @@ class UserResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')->required(),
-                Forms\Components\TextInput::make('nerd name')->required(),
+                Forms\Components\TextInput::make('nerd_name')->label('Nerd Name'),
                 Forms\Components\TextInput::make('email')->email()->required(),
                 Forms\Components\TextInput::make('phone'),
+                Forms\Components\TextInput::make('kennel'),
+                Forms\Components\Select::make('shirt_size')
+                    ->options([
+                        'XS' => 'XS',
+                        'S' => 'S',
+                        'M' => 'M',
+                        'L' => 'L',
+                        'XL' => 'XL',
+                        '2XL' => '2XL',
+                        '3XL' => '3XL',
+                    ]),
+                Forms\Components\Toggle::make('short_bus')->label('Short Bus'),
+                Forms\Components\Textarea::make('comment')->rows(3),
                 Forms\Components\Toggle::make('is_admin')->label('Admin'),
             ]);
     }

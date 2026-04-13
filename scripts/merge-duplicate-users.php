@@ -11,6 +11,8 @@ $merges = [
     [282, 165],  // twistedart13 - keep lowercase with more orders, merge from 165
     [163, 283],  // butiful90lfe - keep 163 (has orders), delete 283 (no orders)
     [299, 41],   // Tour de Puke - keep 299 (more recent activity, different emails)
+    [298, 293],  // Tongue Twizzler - keep 298 (has order), merge 293 (no orders)
+    [302, 101],  // UpperCunt - keep 302 (newer, has phone), merge 101 (has kennel/nerd_name)
 ];
 
 foreach ($merges as [$keepId, $deleteId]) {
