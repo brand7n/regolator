@@ -28,9 +28,9 @@ class UserResource extends Resource
                 Forms\Components\Select::make('shirt_size')
                     ->options([
                         'XS' => 'XS',
-                        'S' => 'S',
-                        'M' => 'M',
-                        'L' => 'L',
+                        'SM' => 'SM',
+                        'MD' => 'MD',
+                        'LG' => 'LG',
                         'XL' => 'XL',
                         '2XL' => '2XL',
                         '3XL' => '3XL',
