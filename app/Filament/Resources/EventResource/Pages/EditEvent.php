@@ -52,6 +52,7 @@ class EditEvent extends EditRecord
                         ->multiple()
                         ->searchable()
                         ->optionsLimit(500)
+                        ->allowHtml()
                         ->options(function () use ($event) {
                             $existingUserIds = Order::where('event_id', $event->id)
                                 ->pluck('user_id');
@@ -59,7 +60,14 @@ class EditEvent extends EditRecord
                             return User::whereNotIn('id', $existingUserIds)
                                 ->orderBy('name')
                                 ->get()
-                                ->mapWithKeys(fn ($user) => [$user->id => $user->name . ' (' . ($user->kennel ?? $user->email) . ')']);
+                                ->mapWithKeys(fn ($user) => [
+                                    $user->id => '<div>'
+                                        . '<span class="font-medium">' . e($user->name) . '</span>'
+                                        . '<br><span class="text-xs text-gray-400">'
+                                        . e($user->email)
+                                        . ($user->kennel ? ' · ' . e($user->kennel) : '')
+                                        . '</span></div>',
+                                ]);
                         })
                         ->required(),
                 ])
