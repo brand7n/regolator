@@ -16,6 +16,11 @@
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>app/Actions</directory>
+            <directory>app/Filament</directory>
+            <file>app/Livewire/LogoutOtherBrowserSessionsForm.php</file>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

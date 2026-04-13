@@ -49,3 +49,7 @@ test('authenticated user can access dashboard', function () {
 test('authenticated user can access event page', function () {
     $this->actingAs($this->user)->get('/events/'.$this->event->id)->assertOk();
 });
+
+test('guest can access quicklogin page', function () {
+    $this->get('/canihazemail')->assertOk();
+});
