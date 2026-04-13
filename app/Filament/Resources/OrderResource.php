@@ -96,8 +96,7 @@ class OrderResource extends Resource
                                 $quickLogin = $user->getQuickLogin($event->ends_at);
                                 $eventUrl = route('events.show', $event);
 
-                                $mail = new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl));
-                                Mail::to($user)->later(now()->addSeconds($count * 5), $mail);
+                                Mail::to($user)->send(new RegoInvite($user, $event, url('/quicklogin/'.$quickLogin.'?action='.$eventUrl)));
                                 $count++;
                             }
 
