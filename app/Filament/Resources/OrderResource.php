@@ -79,8 +79,15 @@ class OrderResource extends Resource
                         ->deselectRecordsAfterCompletion()
                         ->action(function (Collection $records) {
                             $count = 0;
+                            $skipped = 0;
                             /** @var Order $order */
                             foreach ($records as $order) {
+                                if ($order->status === OrderStatus::PaymentVerified) {
+                                    $skipped++;
+
+                                    continue;
+                                }
+
                                 $order->status = OrderStatus::Invited;
                                 $order->save();
 
@@ -94,8 +101,13 @@ class OrderResource extends Resource
                                 $count++;
                             }
 
+                            $msg = "Invited {$count} user(s)";
+                            if ($skipped) {
+                                $msg .= ", skipped {$skipped} already paid";
+                            }
+
                             Notification::make()
-                                ->title("Invited {$count} user(s)")
+                                ->title($msg)
                                 ->success()
                                 ->send();
                         }),
