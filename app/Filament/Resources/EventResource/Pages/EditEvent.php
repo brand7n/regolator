@@ -62,12 +62,12 @@ class EditEvent extends EditRecord
                                 ->get()
                                 ->mapWithKeys(fn ($user) => [
                                     $user->id => '<div>'
-                                        . '<span class="font-medium">' . e($user->name) . '</span>'
-                                        . '<br><span class="text-xs text-gray-400">'
-                                        . e($user->email)
-                                        . ($user->kennel ? ' · ' . e($user->kennel) : '')
-                                        . ($user->nerd_name ? ' · ' . e($user->nerd_name) : '')
-                                        . '</span></div>',
+                                        .'<span class="font-medium">'.e($user->name).'</span>'
+                                        .'<br><span class="text-xs text-gray-400">'
+                                        .e($user->email)
+                                        .($user->kennel ? ' · '.e($user->kennel) : '')
+                                        .($user->nerd_name ? ' · '.e($user->nerd_name) : '')
+                                        .'</span></div>',
                                 ]);
                         })
                         ->required(),
