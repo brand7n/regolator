@@ -79,6 +79,7 @@ class OrderResource extends Resource
                         ->deselectRecordsAfterCompletion()
                         ->action(function (Collection $records) {
                             $count = 0;
+                            /** @var Order $order */
                             foreach ($records as $order) {
                                 $order->status = OrderStatus::Invited;
                                 $order->save();
