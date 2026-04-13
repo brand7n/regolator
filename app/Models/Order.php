@@ -139,6 +139,24 @@ class Order extends Model
                 $data = $orderResponse->json();
 
                 if (isset($data['status']) && $data['status'] === 'COMPLETED') {
+                    $paidCents = (int) round((float) data_get($data, 'purchase_units.0.amount.value', 0) * 100);
+                    $expectedCents = $this->event->base_price;
+
+                    if ($paidCents < $expectedCents) {
+                        Log::error('payment amount mismatch', [
+                            'order_id' => $this->order_id,
+                            'paid_cents' => $paidCents,
+                            'expected_cents' => $expectedCents,
+                        ]);
+                        activity()
+                            ->performedOn($this)
+                            ->causedBy($this->user)
+                            ->withProperties(['data' => $data, 'expected_cents' => $expectedCents])
+                            ->log('payment amount mismatch');
+
+                        return false;
+                    }
+
                     activity()
                         ->performedOn($this)
                         ->causedBy($this->user)

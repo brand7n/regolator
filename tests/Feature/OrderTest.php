@@ -156,7 +156,11 @@ test('activity log uses logOnlyDirty', function () {
 test('verify returns true and processes payment on completed paypal order', function () {
     Http::fake([
         '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
-        '*/v2/checkout/orders/*' => Http::response(['status' => 'COMPLETED', 'id' => 'PAYPAL123']),
+        '*/v2/checkout/orders/*' => Http::response([
+            'status' => 'COMPLETED',
+            'id' => 'PAYPAL123',
+            'purchase_units' => [['amount' => ['value' => '50.00']]],
+        ]),
     ]);
 
     $order = Order::create([
@@ -217,6 +221,34 @@ test('verify returns false on paypal api error', function () {
     $result = $order->verify();
 
     expect($result)->toBeFalse();
+    Mail::assertNothingSent();
+});
+
+test('verify rejects payment amount below base price', function () {
+    Http::fake([
+        '*/v1/oauth2/token' => Http::response(['access_token' => 'fake-token']),
+        '*/v2/checkout/orders/*' => Http::response([
+            'status' => 'COMPLETED',
+            'id' => 'PAYPAL123',
+            'purchase_units' => [['amount' => ['value' => '1.00']]],
+        ]),
+    ]);
+
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaypalPending,
+    ]);
+    $order->order_id = 'PAYPAL123';
+    $order->save();
+
+    $result = $order->verify();
+
+    $order->refresh();
+    expect($result)->toBeFalse()
+        ->and($order->status)->toBe(OrderStatus::PaypalPending)
+        ->and($order->verified_at)->toBeNull();
+
     Mail::assertNothingSent();
 });
 
