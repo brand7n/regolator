@@ -88,7 +88,12 @@ class User extends Authenticatable implements FilamentUser
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll();
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['remember_token', 'email_verified_at', 'updated_at'])
+            ->setDescriptionForEvent(function (string $eventName): string {
+                return "user {$eventName}: {$this->name}";
+            });
     }
 
     /**

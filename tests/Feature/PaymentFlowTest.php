@@ -183,3 +183,17 @@ test('accepting terms on invited order shows price', function () {
         ->call('accept_terms')
         ->assertSee('TOTAL: $100.00');
 });
+
+test('edit redirects to profile page', function () {
+    Livewire::actingAs($this->user)
+        ->test(Paypal::class, ['eventId' => $this->event->id])
+        ->call('edit')
+        ->assertRedirect('/user/profile');
+});
+
+test('decline redirects to hashrego', function () {
+    Livewire::actingAs($this->user)
+        ->test(Paypal::class, ['eventId' => $this->event->id])
+        ->call('decline')
+        ->assertRedirect('https://hashrego.com');
+});

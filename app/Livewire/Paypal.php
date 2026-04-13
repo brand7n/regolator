@@ -8,7 +8,6 @@ use App\Models\OrderStatus;
 use App\Models\User;
 use Auth;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
@@ -190,16 +189,16 @@ class Paypal extends Component
         $this->dispatch('render-paypal');
     }
 
-    public function decline(): RedirectResponse
+    public function decline(): void
     {
         activity()->causedBy(auth()->user())->log('rego declined');
 
-        return redirect()->to('https://hashrego.com');
+        $this->redirect('https://hashrego.com');
     }
 
-    public function edit(): RedirectResponse
+    public function edit(): void
     {
-        return redirect()->to('/user/profile');
+        $this->redirect('/user/profile');
     }
 
     public function waitlist(): void

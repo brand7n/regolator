@@ -1,7 +1,5 @@
 <?php
 
-// app/Filament/Widgets/ActivityLogWidget.php
-
 namespace App\Filament\Widgets;
 
 use Filament\Tables\Columns\TextColumn;
@@ -16,7 +14,7 @@ class ActivityLogWidget extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 2; // Controls widget order on dashboard
+    protected static ?int $sort = 2;
 
     public function table(Table $table): Table
     {
@@ -24,16 +22,68 @@ class ActivityLogWidget extends BaseWidget
             ->query(
                 Activity::query()
                     ->with(['causer', 'subject'])
+                    ->where('description', '!=', 'updated')
                     ->where('created_at', '>=', Carbon::now()->subMonth())
             )
             ->columns([
                 TextColumn::make('user')
                     ->label('User')
-                    ->getStateUsing(fn (Activity $record) => optional($record->causer)->name ?? optional($record->subject)->name ?? 'Unknown'),
+                    ->getStateUsing(function (Activity $record) {
+                        return optional($record->causer)->name
+                            ?? optional($record->subject)->name
+                            ?? $record->properties->get('old.name')
+                            ?? $record->properties->get('attributes.name')
+                            ?? 'System';
+                    }),
+
+                TextColumn::make('subject_label')
+                    ->label('Subject')
+                    ->getStateUsing(function (Activity $record) {
+                        $subject = $record->subject;
+                        $type = $record->subject_type ? class_basename($record->subject_type) : null;
+
+                        if ($subject) {
+                            return match ($type) {
+                                'User' => $subject->name,
+                                'Event' => $subject->name,
+                                'Order' => "Order #{$subject->id}",
+                                default => "{$type} #{$subject->id}",
+                            };
+                        }
+
+                        if (! $type) {
+                            return null;
+                        }
+
+                        return "{$type} #{$record->subject_id}";
+                    }),
 
                 TextColumn::make('description')
                     ->label('Description')
-                    ->wrap(),
+                    ->wrap()
+                    ->formatStateUsing(function (string $state, Activity $record) {
+                        $changed = $record->properties->get('attributes', []);
+                        $old = $record->properties->get('old', []);
+
+                        if ($state === 'deleted') {
+                            $name = $old['name'] ?? $changed['name'] ?? null;
+
+                            return $name ? "deleted: {$name}" : $state;
+                        }
+
+                        $ignore = ['updated_at', 'remember_token', 'email_verified_at', 'password'];
+                        if ($old) {
+                            $fields = collect($changed)
+                                ->filter(fn ($value, $key) => ! in_array($key, $ignore) && ($value !== ($old[$key] ?? null)))
+                                ->keys()
+                                ->all();
+                            if ($fields) {
+                                return $state.' ('.implode(', ', $fields).')';
+                            }
+                        }
+
+                        return $state;
+                    }),
 
                 TextColumn::make('created_at')
                     ->label('Date')
