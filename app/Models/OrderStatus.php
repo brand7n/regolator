@@ -10,4 +10,5 @@ enum OrderStatus: string
     case PaypalPending = 'PAYPAL_PENDING'; // paypal order created but not verified
     case PaymentVerified = 'PAYMENT_VERIFIED'; // paypment verified
     case Cancelled = 'CANCELLED'; // cancelled by user or admin
+    case Blocked = 'BLOCKED'; // blocked from being invited
 }

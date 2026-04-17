@@ -38,6 +38,11 @@
                     LOCATION:<br>
                     {{ $event->location }}
                 </p>
+                @if($event->creator)
+                    <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+                        HOSTED BY: {{ $event->creator->name }}
+                    </p>
+                @endif
                 <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
                     COST: ${{ $event->base_price_in_dollars }}/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)
                 </p>

@@ -17,13 +17,16 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        $events = Event::where('ends_at', '>=', now())
+        $events = Event::with('creator')
+            ->where('ends_at', '>=', now())
             ->orderBy('starts_at')
             ->get();
 
         return view('dashboard', ['events' => $events]);
     })->name('dashboard');
     Route::get('/events/{event}', function (Event $event) {
+        $event->load('creator');
+
         return view('event', ['event' => $event]);
     })->name('events.show');
     // TODO: admin type routes

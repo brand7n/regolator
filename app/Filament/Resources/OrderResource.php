@@ -84,7 +84,7 @@ class OrderResource extends Resource
                             $failed = 0;
                             /** @var Order $order */
                             foreach ($records as $order) {
-                                if ($order->status === OrderStatus::PaymentVerified) {
+                                if (in_array($order->status, [OrderStatus::PaymentVerified, OrderStatus::Blocked])) {
                                     $skipped++;
 
                                     continue;

@@ -191,7 +191,15 @@ class Paypal extends Component
 
     public function decline(): void
     {
-        activity()->causedBy(auth()->user())->log('rego declined');
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($this->order) {
+            $this->order->status = OrderStatus::Cancelled;
+            $this->order->save();
+        }
+
+        activity()->causedBy($user)->log('rego declined');
 
         $this->redirect('https://hashrego.com');
     }
@@ -205,6 +213,17 @@ class Paypal extends Component
     {
         /** @var User $user */
         $user = Auth::user();
+
+        $existing = Order::where('user_id', $user->id)
+            ->where('event_id', $this->event->id)
+            ->where('status', OrderStatus::Blocked)
+            ->first();
+
+        if ($existing) {
+            $this->order = $existing;
+
+            return;
+        }
 
         $this->order = Order::create([
             'user_id' => $user->id,

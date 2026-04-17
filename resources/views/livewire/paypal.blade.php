@@ -5,74 +5,78 @@
 
     @script
     <script>
-        window.renderButton = function(event, name, price) {
+        let paypalRendered = false;
+
+        window.renderButton = function() {
             requestAnimationFrame(() => {
                 const container = document.getElementById('paypal-button-container');
-                if (container && container.offsetParent !== null) {
-                    container.innerHTML = '';
+                if (!container || container.offsetParent === null) return;
 
-                    paypal.Buttons({
-                        createOrder: function(data, actions) {
-                            console.log("Creating order...");
-                            return actions.order.create({
-                                intent: 'CAPTURE',
-                                soft_descriptor: event,
-                                purchase_units: [{
-                                    amount: {
-                                        currency_code: "USD",
-                                        value: price,
-                                        breakdown: {
-                                            item_total: {
-                                                currency_code: "USD",
-                                                value: price,
-                                            }
-                                        }
-                                    },
-                                    items: [{
-                                        name: event + " rego for " + name,
-                                        quantity: 1,
-                                        unit_amount: {
+                if (paypalRendered) return;
+                paypalRendered = true;
+
+                const scrollY = window.scrollY;
+                paypal.Buttons({
+                    createOrder: function(data, actions) {
+                        const price = ($wire.price / 100).toFixed(2);
+                        const event = $wire.event_tag;
+                        const name = $wire.name;
+
+                        return actions.order.create({
+                            intent: 'CAPTURE',
+                            soft_descriptor: event,
+                            purchase_units: [{
+                                amount: {
+                                    currency_code: "USD",
+                                    value: price,
+                                    breakdown: {
+                                        item_total: {
                                             currency_code: "USD",
-                                            value: price
+                                            value: price,
                                         }
-                                    }]
+                                    }
+                                },
+                                items: [{
+                                    name: event + " rego for " + name,
+                                    quantity: 1,
+                                    unit_amount: {
+                                        currency_code: "USD",
+                                        value: price
+                                    }
                                 }]
-                            }).then(function(orderID) {
-                                $wire.setOrderID(orderID).then(function () {
-                                    console.log("Order stored: ", orderID);
-                                })
-                                return orderID;
-                            });
-                        },
+                            }]
+                        }).then(function(orderID) {
+                            $wire.setOrderID(orderID).then(function () {
+                                console.log("Order stored: ", orderID);
+                            })
+                            return orderID;
+                        });
+                    },
 
-                        onApprove: function(data, actions) {
-                            return actions.order.capture().then(function(details) {
-                                console.log('Transaction completed by ' + details.payer.name.given_name + '!');
-                                $wire.approve(details).then(function () {
-                                    container.innerHTML = '';
-                                    $wire.$refresh();
-                                });
+                    onApprove: function(data, actions) {
+                        return actions.order.capture().then(function(details) {
+                            $wire.approve(details).then(function () {
+                                container.style.display = 'none';
+                                $wire.$refresh();
                             });
-                        },
+                        });
+                    },
 
-                        onCancel: function(data, actions) {
-                            $wire.cancel().then(() => {
-                                console.log("Cancelled");
-                            });
-                        },
+                    onCancel: function(data, actions) {
+                        $wire.cancel();
+                    },
 
-                        onError: function(err) {
-                            $wire.error(err).then(function () {
-                                console.log(err);
-                            });
-                        }
-                    }).render('#paypal-button-container');
-                }
+                    onError: function(err) {
+                        $wire.error(err);
+                    }
+                }).render('#paypal-button-container').then(() => {
+                    window.scrollTo({ top: scrollY });
+                });
             });
         }
 
         Livewire.on('render-paypal', () => {
-            renderButton($wire.event_tag, $wire.name, ($wire.price / 100).toFixed(2));
+            renderButton();
         });
     </script>
     @endscript
@@ -145,13 +149,13 @@
             <x-button class="py-3 items-center" wire:click="waitlist">Join Waitlist</x-button>
         @endif
 
-        @if ($order && $order->status === \App\Models\OrderStatus::Waitlisted)
+        @if ($order && in_array($order->status, [\App\Models\OrderStatus::Waitlisted, \App\Models\OrderStatus::Blocked]))
             <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
                 You are on the waitlist for this event. Verify and edit your profile by clicking below.
             </p>
             <x-button class="py-3 items-center animate-bounce" wire:click="edit">Edit</x-button>
         @endif
-        <div wire:ignore.self class="py-4">
+        <div wire:ignore.self class="py-4" id="paypal-section">
             <div id="paypal-button-container"></div>
         </div>
     </div>

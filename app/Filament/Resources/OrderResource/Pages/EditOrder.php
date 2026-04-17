@@ -17,7 +17,36 @@ class EditOrder extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        /** @var Order $order */
+        $order = $this->record;
+
         return [
+            Actions\Action::make('block')
+                ->label('Block User')
+                ->icon('heroicon-o-no-symbol')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Block this user?')
+                ->modalDescription('This will prevent the user from being invited to this event.')
+                ->visible(fn () => $order->status !== OrderStatus::Blocked)
+                ->action(function () use ($order) {
+                    $order->status = OrderStatus::Blocked;
+                    $order->save();
+                    $this->refreshFormData(['status']);
+                }),
+            Actions\Action::make('unblock')
+                ->label('Unblock User')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Unblock this user?')
+                ->modalDescription('This will allow the user to be invited to this event again.')
+                ->visible(fn () => $order->status === OrderStatus::Blocked)
+                ->action(function () use ($order) {
+                    $order->status = OrderStatus::Waitlisted;
+                    $order->save();
+                    $this->refreshFormData(['status']);
+                }),
             Actions\DeleteAction::make(),
         ];
     }

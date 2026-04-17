@@ -27,6 +27,11 @@ class EventResource extends Resource
     {
         return $form
             ->schema([
+                Select::make('created_by')
+                    ->label('Event Creator')
+                    ->relationship('creator', 'name')
+                    ->searchable()
+                    ->required(),
                 TextInput::make('name')->required(),
                 TextInput::make('location')->required(),
                 TextInput::make('lat')->required(),

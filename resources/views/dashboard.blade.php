@@ -15,6 +15,9 @@
                             </p>
                             <p class="text-sm text-gray-600 dark:text-gray-400">{{ $event->location }}</p>
                             <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">${{ $event->base_price_in_dollars }}/rego</p>
+                            @if($event->creator)
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Hosted by {{ $event->creator->name }}</p>
+                            @endif
                         </div>
                     </div>
                 </a>
