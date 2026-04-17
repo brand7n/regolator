@@ -127,7 +127,9 @@ class OrderResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('updated_at', 'desc');
+            ->defaultSort('updated_at', 'desc')
+            ->defaultPaginationPageOption(100)
+            ->paginated([50, 100, 'all']);
     }
 
     public static function getRelations(): array

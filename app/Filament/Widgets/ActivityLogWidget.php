@@ -94,6 +94,7 @@ class ActivityLogWidget extends BaseWidget
             ])
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No activity found.')
-            ->paginated([5, 10, 25]);
+            ->defaultPaginationPageOption(100)
+            ->paginated([50, 100, 'all']);
     }
 }

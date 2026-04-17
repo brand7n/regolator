@@ -144,7 +144,9 @@ class EventResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultPaginationPageOption(100)
+            ->paginated([50, 100, 'all']);
     }
 
     public static function getRelations(): array
