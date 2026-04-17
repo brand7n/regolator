@@ -225,11 +225,11 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/ambient-light-sensor
         'ambient-light-sensor' => [
-            'none' => false,
+            'none' => true,
 
             '*' => false,
 
-            'self' => true,
+            'self' => false,
 
             'origins' => [],
         ],
@@ -324,9 +324,9 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/document-domain
         'document-domain' => [
-            'none' => false,
+            'none' => true,
 
-            '*' => true,
+            '*' => false,
 
             'self' => false,
 
@@ -544,11 +544,11 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/speaker-selection
         'speaker-selection' => [
-            'none' => false,
+            'none' => true,
 
             '*' => false,
 
-            'self' => true,
+            'self' => false,
 
             'origins' => [],
         ],
