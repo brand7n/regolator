@@ -107,15 +107,28 @@ class Paypal extends Component
             ->whereNull('verified_at')
             ->first();
 
-        if ($order) {
-            $order->order_id = $orderID;
-            $order->status = OrderStatus::PaypalPending;
-            $order->save();
-        } else {
-            Log::warning('no order found', ['user' => Auth::user(), 'order_id' => $orderID]);
+        if (! $order) {
+            $existing = Order::where('event_id', $this->event->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            Log::warning('setOrderID: no eligible order', [
+                'user_id' => $user->id,
+                'order_id' => $orderID,
+                'existing_status' => $existing?->status->value ?? 'none',
+                'existing_order_id' => $existing?->order_id,
+            ]);
+
+            if ($existing) {
+                $this->js("alert('Payment could not be processed: your registration is in ".$existing->status->value." state. Please contact the event organizer.')");
+            }
 
             return;
         }
+
+        $order->order_id = $orderID;
+        $order->status = OrderStatus::PaypalPending;
+        $order->save();
 
         $this->skipRender();
     }

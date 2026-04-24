@@ -9,6 +9,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
 
 class UserResource extends Resource
 {
@@ -23,7 +26,24 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')->required(),
                 Forms\Components\TextInput::make('nerd_name')->label('Nerd Name'),
                 Forms\Components\TextInput::make('email')->email()->required(),
-                Forms\Components\TextInput::make('phone'),
+                Forms\Components\TextInput::make('phone')
+                    ->tel()
+                    ->dehydrateStateUsing(function (?string $state): ?string {
+                        if (! $state) {
+                            return null;
+                        }
+
+                        try {
+                            $phoneUtil = PhoneNumberUtil::getInstance();
+                            $parsed = $phoneUtil->parse($state, 'US');
+                            if ($phoneUtil->isValidNumber($parsed)) {
+                                return $phoneUtil->format($parsed, PhoneNumberFormat::E164);
+                            }
+                        } catch (NumberParseException) {
+                        }
+
+                        return $state;
+                    }),
                 Forms\Components\TextInput::make('kennel'),
                 Forms\Components\Select::make('shirt_size')
                     ->options([
