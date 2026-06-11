@@ -79,7 +79,9 @@ class EventMessage extends Mailable
         ];
 
         foreach ($fields as $field) {
-            if (isset($labels[$field])) {
+            if ($field === 'order_status') {
+                $this->profileFields['Registration Status'] = $this->order->status?->value ?? 'N/A';
+            } elseif (isset($labels[$field])) {
                 $this->profileFields[$labels[$field]] = $this->user->{$field};
             }
         }

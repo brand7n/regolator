@@ -56,6 +56,7 @@ class MessageResource extends Resource
                                 'shirt_size' => 'Shirt Size',
                                 'short_bus' => 'Short Bus',
                                 'phone' => 'Phone',
+                                'order_status' => 'Registration Status',
                             ]),
                         Forms\Components\CheckboxList::make('include_event_fields')
                             ->label('Event Info Fields')

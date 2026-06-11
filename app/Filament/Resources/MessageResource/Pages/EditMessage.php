@@ -54,15 +54,27 @@ class EditMessage extends EditRecord
 
                     $mailable = new EventMessage($message, $user, $sampleOrder, $url);
                     $html = $mailable->render();
-                    $text = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>', '</div>', '</li>'], "\n", $html));
-                    $text = html_entity_decode($text);
-                    $text = preg_replace('/\n{3,}/', "\n\n", trim($text));
+
+                    $lines = [$message->body, ''];
+                    if (! empty($mailable->profileFields) || ! empty($mailable->eventInfoFields)) {
+                        $lines[] = '---';
+                        $lines[] = 'Your Info:';
+                        foreach ($mailable->profileFields as $label => $value) {
+                            $lines[] = "- {$label}: {$value}";
+                        }
+                        foreach ($mailable->eventInfoFields as $label => $value) {
+                            $lines[] = "- {$label}: {$value}";
+                        }
+                        $lines[] = '';
+                    }
+                    $lines[] = "View Event: {$url}";
+                    $plainText = implode("\n", $lines);
 
                     return new HtmlString(
                         $html
                         .'<hr class="my-4">'
                         .'<h3 class="font-bold mb-2">Plain Text Version</h3>'
-                        .'<pre class="whitespace-pre-wrap text-sm text-gray-600 bg-gray-50 p-4 rounded">'.e($text).'</pre>'
+                        .'<pre class="whitespace-pre-wrap text-sm text-gray-600 bg-gray-50 p-4 rounded">'.e($plainText).'</pre>'
                     );
                 })
                 ->modalSubmitAction(false)
