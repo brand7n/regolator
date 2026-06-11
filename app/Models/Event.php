@@ -101,6 +101,12 @@ class Event extends Model
         return $this->hasMany(Order::class);
     }
 
+    /** @return HasMany<Message, $this> */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
     public function getOrder(User $user): ?Order
     {
         return Order::where('user_id', $user->id)

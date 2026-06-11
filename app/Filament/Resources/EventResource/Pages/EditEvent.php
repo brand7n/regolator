@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\EventResource\Pages;
 
 use App\Filament\Resources\EventResource;
+use App\Filament\Resources\MessageResource;
 use App\Mail\RegoInvite;
 use App\Models\Event;
 use App\Models\Order;
@@ -32,6 +33,10 @@ class EditEvent extends EditRecord
                 ->icon('heroicon-o-eye')
                 ->url(route('events.show', $event))
                 ->openUrlInNewTab(),
+            Actions\Action::make('messages')
+                ->label('Messages')
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->url(MessageResource::getUrl('index', ['tableFilters' => ['event_id' => ['value' => $event->id]]])),
             Actions\Action::make('export_orders')
                 ->label('Export CSV')
                 ->icon('heroicon-o-arrow-down-tray')
