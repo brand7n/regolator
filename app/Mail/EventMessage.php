@@ -80,7 +80,7 @@ class EventMessage extends Mailable
 
         foreach ($fields as $field) {
             if ($field === 'order_status') {
-                $this->profileFields['Registration Status'] = $this->order->status?->value ?? 'N/A';
+                $this->profileFields['Registration Status'] = $this->order->status->value ?? 'N/A';
             } elseif (isset($labels[$field])) {
                 $this->profileFields[$labels[$field]] = $this->user->{$field};
             }
@@ -91,6 +91,7 @@ class EventMessage extends Mailable
     {
         $fields = $this->message->include_event_fields ?? [];
         $eventFields = data_get($this->message->event->properties, 'fields', []);
+        /** @var array<int, array{name: string, label: string}> $eventFields */
         $labelMap = collect($eventFields)->pluck('label', 'name')->toArray();
         $eventInfo = $this->order->event_info ?? [];
 
