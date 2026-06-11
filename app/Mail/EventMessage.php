@@ -114,6 +114,9 @@ class EventMessage extends Mailable
         foreach ($fields as $field) {
             if ($field === 'order_status') {
                 $this->profileFields['Registration Status'] = $this->order->status->value ?? 'N/A';
+            } elseif ($field === 'short_bus') {
+                $value = $this->user->short_bus;
+                $this->profileFields['Short Bus'] = in_array($value, ['Y', '1', 1, true], true) ? 'Yes' : 'No';
             } elseif (isset($labels[$field])) {
                 $this->profileFields[$labels[$field]] = $this->user->{$field};
             }
