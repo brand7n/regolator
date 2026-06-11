@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use App\Filament\Resources\UserResource;
 use App\Mail\PaymentConfirmation;
 use App\Mail\RegoInvite;
 use App\Models\Order;
@@ -23,6 +24,10 @@ class EditOrder extends EditRecord
         $order = $this->record;
 
         return [
+            Actions\Action::make('view_user')
+                ->label($order->user->name)
+                ->icon('heroicon-o-user')
+                ->url(UserResource::getUrl('edit', ['record' => $order->user_id])),
             Actions\Action::make('block')
                 ->label('Block User')
                 ->icon('heroicon-o-no-symbol')
