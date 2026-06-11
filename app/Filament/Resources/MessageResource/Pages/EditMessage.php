@@ -129,7 +129,7 @@ class EditMessage extends EditRecord
 
                     return "This will queue {$count} email(s) for delivery.";
                 })
-                ->visible(fn () => $message->status === MessageStatus::Draft)
+                ->visible(fn () => $message->status === MessageStatus::Draft && ! empty($message->recipient_filter))
                 ->action(function () use ($message) {
                     $orders = $message->resolveRecipients();
 

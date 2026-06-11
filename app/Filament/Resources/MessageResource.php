@@ -41,7 +41,6 @@ class MessageResource extends Resource
                     ->label('Recipient Statuses')
                     ->multiple()
                     ->options(OrderStatus::class)
-                    ->required()
                     ->helperText('Orders with these statuses will receive the message'),
 
                 Forms\Components\Section::make('Personalization')
