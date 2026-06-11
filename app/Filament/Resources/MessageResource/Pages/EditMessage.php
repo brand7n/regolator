@@ -17,7 +17,6 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
 
 class EditMessage extends EditRecord
 {
@@ -56,30 +55,11 @@ class EditMessage extends EditRecord
                     $mailable = new EventMessage($message, $user, $sampleOrder, $url);
                     $html = $mailable->render();
 
-                    $bodyHtml = Str::markdown($message->body);
-                    $bodyHtml = preg_replace('/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/', '$2 ($1)', $bodyHtml);
-                    $body = strip_tags(str_replace(['<br>', '</p>', '</li>', '</h1>', '</h2>', '</h3>'], "\n", $bodyHtml));
-                    $body = html_entity_decode(trim(preg_replace('/\n{3,}/', "\n\n", $body)));
-
-                    $lines = [$body, ''];
-                    if (! empty($mailable->profileFields) || ! empty($mailable->eventInfoFields)) {
-                        $lines[] = 'Your Info:';
-                        foreach ($mailable->profileFields as $label => $value) {
-                            $lines[] = "- {$label}: {$value}";
-                        }
-                        foreach ($mailable->eventInfoFields as $label => $value) {
-                            $lines[] = "- {$label}: {$value}";
-                        }
-                        $lines[] = '';
-                    }
-                    $lines[] = "View Event: {$url}";
-                    $plainText = implode("\n", $lines);
-
                     return new HtmlString(
                         $html
                         .'<hr class="my-4">'
                         .'<h3 class="font-bold mb-2">Plain Text Version</h3>'
-                        .'<pre class="whitespace-pre-wrap text-sm text-gray-600 bg-gray-50 p-4 rounded">'.e($plainText).'</pre>'
+                        .'<pre class="whitespace-pre-wrap text-sm text-gray-600 bg-gray-50 p-4 rounded">'.e($mailable->plainText).'</pre>'
                     );
                 })
                 ->modalSubmitAction(false)

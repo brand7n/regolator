@@ -12,6 +12,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class EventMessage extends Mailable
 {
@@ -27,6 +28,8 @@ class EventMessage extends Mailable
 
     public string $unsubscribeUrl;
 
+    public string $plainText;
+
     public function __construct(
         public Message $message,
         public User $user,
@@ -37,6 +40,7 @@ class EventMessage extends Mailable
         $this->unsubscribeUrl = preg_replace('/\?action=.*/', '?action=unsubscribe', $url);
         $this->buildProfileFields();
         $this->buildEventInfoFields();
+        $this->plainText = $this->renderPlainText();
     }
 
     public function envelope(): Envelope
@@ -50,6 +54,7 @@ class EventMessage extends Mailable
     {
         return new Content(
             markdown: 'emails.event_message',
+            text: 'emails.event_message_text',
         );
     }
 
@@ -66,6 +71,31 @@ class EventMessage extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    public function renderPlainText(): string
+    {
+        $bodyHtml = Str::markdown($this->message->body);
+        $bodyHtml = preg_replace('/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/', '$2 ($1)', $bodyHtml);
+        $body = strip_tags(str_replace(['<br>', '</p>', '</li>', '</h1>', '</h2>', '</h3>'], "\n", $bodyHtml));
+        $body = html_entity_decode(trim(preg_replace('/\n{3,}/', "\n\n", $body)));
+
+        $lines = [$body, ''];
+        if (! empty($this->profileFields) || ! empty($this->eventInfoFields)) {
+            $lines[] = 'Your Info:';
+            foreach ($this->profileFields as $label => $value) {
+                $lines[] = "- {$label}: {$value}";
+            }
+            foreach ($this->eventInfoFields as $label => $value) {
+                $lines[] = "- {$label}: {$value}";
+            }
+            $lines[] = '';
+        }
+        $lines[] = "View Event: {$this->url}";
+        $lines[] = '';
+        $lines[] = "Unsubscribe: {$this->unsubscribeUrl}";
+
+        return implode("\n", $lines);
     }
 
     private function buildProfileFields(): void
