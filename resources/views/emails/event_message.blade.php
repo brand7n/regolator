@@ -2,17 +2,19 @@
 {!! Str::markdown($message->body) !!}
 
 @if(count($profileFields) > 0 || count($eventInfoFields) > 0)
-<div style="margin-top: 16px; padding: 12px; background-color: #f8f9fa; border-radius: 4px; color: #333333;">
-<p style="font-weight: bold; margin-bottom: 8px; color: #333333;">Your Info:</p>
-<ul style="list-style: none; padding: 0; margin: 0; color: #333333;">
+
+**Your Info:**
+
+<x-mail::table>
+| | |
+|:--|:--|
 @foreach($profileFields as $label => $value)
-<li style="padding: 2px 0; color: #333333;"><strong>{{ $label }}:</strong> {{ $value }}</li>
+| **{{ $label }}** | {{ $value }} |
 @endforeach
 @foreach($eventInfoFields as $label => $value)
-<li style="padding: 2px 0; color: #333333;"><strong>{{ $label }}:</strong> {{ $value }}</li>
+| **{{ $label }}** | {{ $value }} |
 @endforeach
-</ul>
-</div>
+</x-mail::table>
 @endif
 
 <x-mail::button :url="$url">
