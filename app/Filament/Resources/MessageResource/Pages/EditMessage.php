@@ -9,9 +9,13 @@ use App\Models\Message;
 use App\Models\MessageRecipient;
 use App\Models\MessageRecipientStatus;
 use App\Models\MessageStatus;
+use App\Models\Order;
 use Filament\Actions;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\HtmlString;
 
 class EditMessage extends EditRecord
@@ -44,6 +48,74 @@ class EditMessage extends EditRecord
                     return new HtmlString($mailable->render());
                 })
                 ->modalSubmitAction(false)
+                ->visible(fn () => $message->status === MessageStatus::Draft),
+
+            Actions\Action::make('send_test')
+                ->label('Send Test')
+                ->icon('heroicon-o-beaker')
+                ->color('gray')
+                ->form([
+                    Select::make('user_ids')
+                        ->label('Test Recipients')
+                        ->multiple()
+                        ->searchable()
+                        ->optionsLimit(500)
+                        ->allowHtml()
+                        ->options(function () use ($message) {
+                            return Order::where('event_id', $message->event_id)
+                                ->with('user')
+                                ->get()
+                                ->mapWithKeys(fn (Order $order) => [
+                                    $order->user_id => '<div>'
+                                        .'<span class="font-medium">'.e($order->user->name).'</span>'
+                                        .'<br><span class="text-xs text-gray-400">'.e($order->user->email).'</span>'
+                                        .'</div>',
+                                ]);
+                        })
+                        ->required(),
+                ])
+                ->action(function (array $data) use ($message) {
+                    $event = $message->event;
+                    $count = 0;
+                    $failed = 0;
+
+                    foreach ($data['user_ids'] as $userId) {
+                        $order = Order::where('user_id', $userId)
+                            ->where('event_id', $event->id)
+                            ->first();
+
+                        if (! $order) {
+                            continue;
+                        }
+
+                        try {
+                            $user = $order->user;
+                            $quickLogin = $user->getQuickLogin($event->ends_at);
+                            $eventUrl = route('events.show', $event);
+                            $url = url('/quicklogin/'.$quickLogin.'?action='.$eventUrl);
+
+                            Mail::to($user)->send(new EventMessage($message, $user, $order, $url));
+                            $count++;
+                        } catch (\Throwable $e) {
+                            Log::error('failed to send test message', [
+                                'message_id' => $message->id,
+                                'user_id' => $userId,
+                                'error' => $e->getMessage(),
+                            ]);
+                            $failed++;
+                        }
+                    }
+
+                    $msg = "Sent test to {$count} user(s)";
+                    if ($failed) {
+                        $msg .= ", {$failed} failed";
+                    }
+
+                    Notification::make()
+                        ->title($msg)
+                        ->status($failed ? 'warning' : 'success')
+                        ->send();
+                })
                 ->visible(fn () => $message->status === MessageStatus::Draft),
 
             Actions\Action::make('send')
