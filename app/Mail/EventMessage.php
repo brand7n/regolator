@@ -25,6 +25,8 @@ class EventMessage extends Mailable
     /** @var array<string, string|null> */
     public array $eventInfoFields = [];
 
+    public string $unsubscribeUrl;
+
     public function __construct(
         public Message $message,
         public User $user,
@@ -32,6 +34,7 @@ class EventMessage extends Mailable
         public string $url,
     ) {
         $this->name = $user->name;
+        $this->unsubscribeUrl = preg_replace('/\?action=.*/', '?action=unsubscribe', $url);
         $this->buildProfileFields();
         $this->buildEventInfoFields();
     }
@@ -54,7 +57,7 @@ class EventMessage extends Mailable
     {
         return new Headers(
             text: [
-                'List-Unsubscribe' => "<{$this->url}?action=unsubscribe>",
+                'List-Unsubscribe' => "<{$this->unsubscribeUrl}>",
             ],
         );
     }

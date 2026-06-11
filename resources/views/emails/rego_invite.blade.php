@@ -12,12 +12,12 @@ We are using our own newish, half-assed rego system. The button/link below will 
 Click Here
 </x-mail::button>
 
-Not planning to attend? You can [decline your invite]({{ $url . '?action=decline' }}) to let us know!
+Not planning to attend? You can [decline your invite]({{ preg_replace('/\?action=.*/', '?action=decline', $url) }}) to let us know!
 
 ON-ON,<br>
 -tmh
 
 <p style="font-size: 14px; color: #888;">
-    If you do not wish to receive further emails, you can <a href="{{ $url . '?action=unsubscribe' }}">unsubscribe here</a>.
+    If you do not wish to receive further emails, you can <a href="{{ preg_replace('/\?action=.*/', '?action=unsubscribe', $url) }}">unsubscribe here</a>.
 </p>
 </x-mail::message>

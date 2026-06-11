@@ -74,11 +74,11 @@ class RegoInvite extends Mailable implements ShouldQueue
 
     public function headers(): Headers
     {
-        $unsubscribeUrl = $this->url.'?action=unsubscribe';
+        $unsubscribeUrl = preg_replace('/\?action=.*/', '?action=unsubscribe', $this->url);
 
         return new Headers(
             text: [
-                'List-Unsubscribe' => "<{$this->url}?action=unsubscribe>",
+                'List-Unsubscribe' => "<{$unsubscribeUrl}>",
             ],
         );
     }

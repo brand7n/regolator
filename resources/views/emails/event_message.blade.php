@@ -20,6 +20,6 @@ View Event
 </x-mail::button>
 
 <p style="font-size: 14px; color: #888;">
-    If you do not wish to receive further emails, you can <a href="{{ $url . '?action=unsubscribe' }}">unsubscribe here</a>.
+    If you do not wish to receive further emails, you can <a href="{{ $unsubscribeUrl }}">unsubscribe here</a>.
 </p>
 </x-mail::message>
