@@ -17,6 +17,7 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class EditMessage extends EditRecord
 {
@@ -55,7 +56,11 @@ class EditMessage extends EditRecord
                     $mailable = new EventMessage($message, $user, $sampleOrder, $url);
                     $html = $mailable->render();
 
-                    $lines = [$message->body, ''];
+                    $bodyHtml = Str::markdown($message->body);
+                    $body = strip_tags(str_replace(['<br>', '</p>', '</li>', '</h1>', '</h2>', '</h3>'], "\n", $bodyHtml));
+                    $body = html_entity_decode(trim(preg_replace('/\n{3,}/', "\n\n", $body)));
+
+                    $lines = [$body, ''];
                     if (! empty($mailable->profileFields) || ! empty($mailable->eventInfoFields)) {
                         $lines[] = '---';
                         $lines[] = 'Your Info:';
