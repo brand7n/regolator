@@ -32,20 +32,38 @@ class EditMessage extends EditRecord
                 ->label('Preview Email')
                 ->icon('heroicon-o-eye')
                 ->modalContent(function () use ($message) {
-                    $orders = $message->resolveRecipients();
-                    if ($orders->isEmpty()) {
-                        return new HtmlString('<p class="p-4 text-gray-500">No matching recipients found.</p>');
+                    $user = auth()->user();
+                    $sampleOrder = Order::where('event_id', $message->event_id)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+                    if (! $sampleOrder) {
+                        $sampleOrder = Order::where('event_id', $message->event_id)
+                            ->with('user')
+                            ->first();
+                        if (! $sampleOrder) {
+                            return new HtmlString('<p class="p-4 text-gray-500">No orders found for this event.</p>');
+                        }
+                        $user = $sampleOrder->user;
                     }
-                    $sampleOrder = $orders->first();
-                    $user = $sampleOrder->user;
+
                     $event = $message->event;
                     $quickLogin = $user->getQuickLogin($event->ends_at);
                     $eventUrl = route('events.show', $event);
                     $url = url('/quicklogin/'.$quickLogin.'?action='.$eventUrl);
 
                     $mailable = new EventMessage($message, $user, $sampleOrder, $url);
+                    $html = $mailable->render();
+                    $text = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>', '</div>', '</li>'], "\n", $html));
+                    $text = html_entity_decode($text);
+                    $text = preg_replace('/\n{3,}/', "\n\n", trim($text));
 
-                    return new HtmlString($mailable->render());
+                    return new HtmlString(
+                        $html
+                        .'<hr class="my-4">'
+                        .'<h3 class="font-bold mb-2">Plain Text Version</h3>'
+                        .'<pre class="whitespace-pre-wrap text-sm text-gray-600 bg-gray-50 p-4 rounded">'.e($text).'</pre>'
+                    );
                 })
                 ->modalSubmitAction(false)
                 ->visible(fn () => $message->status === MessageStatus::Draft),
