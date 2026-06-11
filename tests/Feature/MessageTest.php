@@ -224,7 +224,7 @@ test('updateDeliveryCounts sets sent status when all delivered', function () {
     expect($message->status)->toBe(MessageStatus::Sent)
         ->and($message->sent_count)->toBe(1)
         ->and($message->failed_count)->toBe(0)
-        ->and($message->sent_at)->not->toBeNull();
+        ->and($message->last_sent_at)->not->toBeNull();
 });
 
 test('updateDeliveryCounts sets failed status when some fail', function () {

@@ -103,7 +103,7 @@ class MessageResource extends Resource
                     ->label('Sent'),
                 Tables\Columns\TextColumn::make('failed_count')
                     ->label('Failed'),
-                Tables\Columns\TextColumn::make('sent_at')
+                Tables\Columns\TextColumn::make('last_sent_at')
                     ->dateTime('Y-m-d h:i A', 'America/New_York')
                     ->sortable(),
             ])

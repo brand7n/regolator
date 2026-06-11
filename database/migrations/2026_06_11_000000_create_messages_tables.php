@@ -21,7 +21,7 @@ return new class extends Migration
             $table->json('include_event_fields')->nullable();
             $table->integer('sent_count')->default(0);
             $table->integer('failed_count')->default(0);
-            $table->timestamp('sent_at')->nullable();
+            $table->timestamp('last_sent_at')->nullable();
         });
 
         Schema::create('message_recipients', function (Blueprint $table) {

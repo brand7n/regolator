@@ -21,7 +21,7 @@ class Message extends Model
         'recipient_filter' => 'array',
         'include_profile_fields' => 'array',
         'include_event_fields' => 'array',
-        'sent_at' => 'datetime',
+        'last_sent_at' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -73,7 +73,7 @@ class Message extends Model
 
         if ($processed >= $total) {
             $this->status = $this->failed_count > 0 ? MessageStatus::Failed : MessageStatus::Sent;
-            $this->sent_at = now();
+            $this->last_sent_at = now();
         }
 
         $this->save();
