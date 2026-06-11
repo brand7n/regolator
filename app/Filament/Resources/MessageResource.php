@@ -69,6 +69,7 @@ class MessageResource extends Resource
                                 if (! $event || ! $event->properties) {
                                     return [];
                                 }
+                                /** @var array<int, array{name: string, label: string}> $fields */
                                 $fields = data_get($event->properties, 'fields', []);
 
                                 return collect($fields)->pluck('label', 'name')->toArray();
