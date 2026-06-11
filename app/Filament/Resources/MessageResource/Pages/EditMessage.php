@@ -57,12 +57,12 @@ class EditMessage extends EditRecord
                     $html = $mailable->render();
 
                     $bodyHtml = Str::markdown($message->body);
+                    $bodyHtml = preg_replace('/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/', '$2 ($1)', $bodyHtml);
                     $body = strip_tags(str_replace(['<br>', '</p>', '</li>', '</h1>', '</h2>', '</h3>'], "\n", $bodyHtml));
                     $body = html_entity_decode(trim(preg_replace('/\n{3,}/', "\n\n", $body)));
 
                     $lines = [$body, ''];
                     if (! empty($mailable->profileFields) || ! empty($mailable->eventInfoFields)) {
-                        $lines[] = '---';
                         $lines[] = 'Your Info:';
                         foreach ($mailable->profileFields as $label => $value) {
                             $lines[] = "- {$label}: {$value}";

@@ -2,17 +2,15 @@
 {!! Str::markdown($message->body) !!}
 
 @if(count($profileFields) > 0 || count($eventInfoFields) > 0)
----
 
 **Your Info:**
-
 @foreach($profileFields as $label => $value)
-- {{ $label }}: {{ $value }}
+- **{{ $label }}:** {{ $value }}
+@endforeach
+@foreach($eventInfoFields as $label => $value)
+- **{{ $label }}:** {{ $value }}
 @endforeach
 
-@foreach($eventInfoFields as $label => $value)
-- {{ $label }}: {{ $value }}
-@endforeach
 @endif
 
 <x-mail::button :url="$url">
