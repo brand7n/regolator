@@ -31,6 +31,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('order_id')->constrained();
             $table->string('status')->default('PENDING');
+            $table->boolean('is_test')->default(false);
             $table->text('error')->nullable();
             $table->timestamp('sent_at')->nullable();
         });

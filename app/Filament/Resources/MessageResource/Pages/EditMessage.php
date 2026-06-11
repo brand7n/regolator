@@ -95,6 +95,16 @@ class EditMessage extends EditRecord
                             $url = url('/quicklogin/'.$quickLogin.'?action='.$eventUrl);
 
                             Mail::to($user)->send(new EventMessage($message, $user, $order, $url));
+
+                            MessageRecipient::create([
+                                'message_id' => $message->id,
+                                'user_id' => $user->id,
+                                'order_id' => $order->id,
+                                'status' => MessageRecipientStatus::Sent,
+                                'is_test' => true,
+                                'sent_at' => now(),
+                            ]);
+
                             $count++;
                         } catch (\Throwable $e) {
                             Log::error('failed to send test message', [
@@ -129,7 +139,7 @@ class EditMessage extends EditRecord
 
                     return "This will queue {$count} email(s) for delivery.";
                 })
-                ->visible(fn () => $message->status === MessageStatus::Draft && ! empty($message->recipient_filter))
+                ->visible(fn () => in_array($message->status, [MessageStatus::Draft, MessageStatus::Sent]) && ! empty($message->recipient_filter))
                 ->action(function () use ($message) {
                     $orders = $message->resolveRecipients();
 

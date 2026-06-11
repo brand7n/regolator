@@ -52,8 +52,13 @@ class Message extends Model
     /** @return Collection<int, Order> */
     public function resolveRecipients(): Collection
     {
+        $alreadySentUserIds = $this->recipients()
+            ->where('is_test', false)
+            ->pluck('user_id');
+
         return Order::where('event_id', $this->event_id)
-            ->whereIn('status', $this->recipient_filter)
+            ->whereIn('status', $this->recipient_filter ?? [])
+            ->whereNotIn('user_id', $alreadySentUserIds)
             ->with('user')
             ->get();
     }
