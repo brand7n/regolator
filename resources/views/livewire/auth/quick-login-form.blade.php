@@ -32,8 +32,13 @@
             </div>
 
             <div class="mt-4">
-                <x-label for="name" value="Can I Haz Cell Number" />
-                <x-input id="name" wire:model.defer="phone" placeholder="+1(555)555-5555" class="block mt-1 w-full" type="text" x-ref="phoneInput" required autofocus />
+                <x-label for="phone" value="Can I Haz Cell Number" />
+                <x-input id="phone" wire:model.defer="phone" placeholder="+1(555)555-5555" class="block mt-1 w-full" type="text" required />
+            </div>
+
+            <div class="mt-4">
+                <x-label for="kennel" value="Can I Haz Kennel" />
+                <x-input id="kennel" wire:model.defer="kennel" placeholder="Your home kennel" class="block mt-1 w-full" type="text" />
             </div>
 
             <div class="flex items-center justify-end mt-4">
