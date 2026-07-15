@@ -50,7 +50,7 @@ class EventMessage extends Mailable
         );
 
         if ($this->message->reply_to) {
-            $envelope->with(new Headers(\Symfony\Component\Mime\Header\Header::create('Reply-To', $this->message->reply_to)));
+            $envelope = $envelope->replyTo($this->message->reply_to);
         }
 
         return $envelope;
