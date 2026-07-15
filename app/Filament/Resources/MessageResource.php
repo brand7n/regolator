@@ -32,6 +32,10 @@ class MessageResource extends Resource
 
                 Forms\Components\TextInput::make('subject')->required(),
 
+                Forms\Components\TextInput::make('reply_to')
+                    ->label('Reply-To Email (optional)')
+                    ->helperText('If set, replies will go to this address instead of the recipient\'s email'),
+
                 Forms\Components\MarkdownEditor::make('body')
                     ->columnSpanFull()
                     ->required()

@@ -22,6 +22,7 @@ class Message extends Model
         'include_profile_fields' => 'array',
         'include_event_fields' => 'array',
         'last_sent_at' => 'datetime',
+        'reply_to' => 'string',
     ];
 
     public function getActivitylogOptions(): LogOptions

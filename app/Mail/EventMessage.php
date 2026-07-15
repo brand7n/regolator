@@ -45,9 +45,15 @@ class EventMessage extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(
+        $envelope = new Envelope(
             subject: $this->message->subject,
         );
+
+        if ($this->message->reply_to) {
+            $envelope = $envelope->replyTo($this->message->reply_to);
+        }
+
+        return $envelope;
     }
 
     public function content(): Content
