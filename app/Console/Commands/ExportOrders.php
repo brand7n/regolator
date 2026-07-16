@@ -24,17 +24,17 @@ class ExportOrders extends Command
         Storage::makeDirectory('exports');
         $handle = fopen(Storage::path($filename), 'w');
 
-        fputcsv($handle, array_merge(['user_name', 'status'], $fieldNames));
+        fputcsv($handle, array_merge(['user_name', 'email', 'shirt_size', 'kennel', 'nerd_name', 'phone', 'status'], $fieldNames));
 
         $orders = Order::query()
-            ->select('orders.*', 'users.name as user_name')
+            ->select('orders.*', 'users.name as user_name', 'users.email', 'users.shirt_size', 'users.kennel', 'users.nerd_name', 'users.phone')
             ->join('users', 'users.id', '=', 'orders.user_id')
             ->where('orders.event_id', $eventId)
             ->get();
 
         foreach ($orders as $order) {
             $info = $order->event_info ?? [];
-            $row = [$order->user_name, $order->status?->value];
+            $row = [$order->user_name ?? null, $order->email ?? null, $order->shirt_size ?? null, $order->kennel ?? null, $order->nerd_name ?? null, $order->phone ?? null, $order->status?->value];
             foreach ($fieldNames as $field) {
                 $row[] = $info[$field] ?? null;
             }
