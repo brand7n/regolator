@@ -39,6 +39,8 @@ class Paypal extends Component
 
     public ?Event $event = null;
 
+    public string $regos_full_message = '';
+
     public function mount(int $eventId): void
     {
         $this->key = config('services.paypal.client_id');
@@ -51,6 +53,8 @@ class Paypal extends Component
         $this->event = Event::findOrFail($eventId);
         $this->order = $this->event->getOrder($user);
         $this->addonDefinitions = data_get($this->event->properties, 'addons', []);
+
+        $this->regos_full_message = '';
 
         foreach ($this->addonDefinitions as $addon) {
             $this->selected_addons[$addon['name']] = false;
@@ -152,7 +156,12 @@ class Paypal extends Component
 
         if ($order->verify()) {
             $this->rego_paid_at = Carbon::now();
+        } else {
+            $this->regos_full_message = $this->getMaxRegosReachedMessage();
+            $this->dispatch('max-regos-reached');
         }
+
+        $this->dispatch('render-paypal');
     }
 
     public function cancel(): void
@@ -169,10 +178,17 @@ class Paypal extends Component
 
     public function accept_terms(): void
     {
-        $this->terms_accepted = true;
-
         /** @var User $user */
         $user = Auth::user();
+
+        if ($this->event->isFull()) {
+            $this->regos_full_message = $this->getMaxRegosReachedMessage();
+            $this->dispatch('max-regos-reached');
+
+            return;
+        }
+
+        $this->terms_accepted = true;
 
         if (! $this->order && ! $this->event->private) {
             $this->order = Order::create([
@@ -194,6 +210,35 @@ class Paypal extends Component
 
         activity()->causedBy($user)->log('terms accepted');
         $this->dispatch('render-paypal');
+    }
+
+    public function getUiStateProperty(): string
+    {
+        if ($this->rego_paid_at) {
+            return 'paid';
+        }
+
+        if ($this->order && in_array($this->order->status, [OrderStatus::Waitlisted, OrderStatus::Blocked], true)) {
+            return 'waitlist';
+        }
+
+        if (! $this->order && $this->event->private) {
+            return 'private-no-order';
+        }
+
+        if ($this->terms_accepted) {
+            return 'terms-accepted';
+        }
+
+        return 'show-waiver';
+    }
+
+    private function getMaxRegosReachedMessage(): string
+    {
+        return sprintf(
+            'Sorry, but this event is fully registered. There are already %d registered participants for this event. We are no longer accepting registrations. Please check back later for future events!',
+            $this->event->max_regos
+        );
     }
 
     public function toggleAddon(string $addonName): void

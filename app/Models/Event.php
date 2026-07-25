@@ -27,6 +27,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $private
  * @property string|null $event_tag
  * @property int $base_price
+ * @property int $max_regos
  * @property string|null $lat
  * @property string|null $lon
  * @property-read Collection<int, Activity> $activities
@@ -122,5 +123,25 @@ class Event extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Count unique paid registrants using the same algorithm as Regos::render().
+     */
+    public function paidRegosCount(): int
+    {
+        return $this->orders()
+            ->where('status', OrderStatus::PaymentVerified)
+            ->distinct('user_id')
+            ->count('user_id');
+    }
+
+    /**
+     * Check if the event has reached its max registrations limit.
+     * 0 means unlimited.
+     */
+    public function isFull(): bool
+    {
+        return $this->max_regos > 0 && $this->paidRegosCount() >= $this->max_regos;
     }
 }

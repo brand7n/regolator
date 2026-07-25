@@ -135,50 +135,77 @@ class Order extends Model
                 ->accept('application/json')
                 ->get("https://api.{$sandbox}paypal.com/v2/checkout/orders/{$this->order_id}");
 
-            if ($orderResponse->successful()) {
-                $data = $orderResponse->json();
-
-                if (isset($data['status']) && $data['status'] === 'COMPLETED') {
-                    $paidCents = (int) round((float) data_get($data, 'purchase_units.0.amount.value', 0) * 100);
-                    $expectedCents = $this->event->base_price;
-
-                    if ($paidCents < $expectedCents) {
-                        Log::error('payment amount mismatch', [
-                            'order_id' => $this->order_id,
-                            'paid_cents' => $paidCents,
-                            'expected_cents' => $expectedCents,
-                        ]);
-                        activity()
-                            ->performedOn($this)
-                            ->causedBy($this->user)
-                            ->withProperties(['data' => $data, 'expected_cents' => $expectedCents])
-                            ->log('payment amount mismatch');
-
-                        return false;
-                    }
-
-                    activity()
-                        ->performedOn($this)
-                        ->causedBy($this->user)
-                        ->withProperties(['data' => $data])
-                        ->log('transaction verified');
-                    $this->handle_payment_success();
-
-                    return true;
-                } else {
-                    activity()
-                        ->performedOn($this)
-                        ->causedBy($this->user)
-                        ->withProperties(['data' => $data])
-                        ->log('transaction retrieved');
-                }
-            } else {
+            if (! $orderResponse->successful()) {
                 Log::error('failed to verify order', [
                     'order' => $this,
                     'code' => $orderResponse->status(),
                     'response' => $orderResponse->body(),
                 ]);
+
+                return false;
             }
+
+            $data = $orderResponse->json();
+            $status = $data['status'] ?? null;
+
+            // Already captured (e.g. by verify-pending-orders cron)
+            if ($status === 'COMPLETED') {
+                $paidCents = (int) round((float) data_get($data, 'purchase_units.0.amount.value', 0) * 100);
+
+                return $this->finalizeIfAmountOk($paidCents, $data);
+            }
+
+            // Not yet captured — server-side capture after limit check
+            if ($status === 'APPROVED') {
+                if ($this->event && $this->event->isFull()) {
+                    activity()
+                        ->performedOn($this)
+                        ->causedBy($this->user)
+                        ->withProperties(['max_regos' => $this->event->max_regos])
+                        ->log('registration limit reached before capture');
+
+                    return false;
+                }
+
+                $captureResponse = Http::withToken($bearer_token)
+                    ->accept('application/json')
+                    ->post("https://api.{$sandbox}paypal.com/v2/checkout/orders/{$this->order_id}/capture", [
+                        'intent' => 'CAPTURE',
+                    ]);
+
+                if (! $captureResponse->successful()) {
+                    Log::error('failed to capture paypal order', [
+                        'order' => $this,
+                        'code' => $captureResponse->status(),
+                        'response' => $captureResponse->body(),
+                    ]);
+
+                    return false;
+                }
+
+                $captureData = $captureResponse->json();
+                $captureStatus = $captureData['status'] ?? null;
+
+                if ($captureStatus !== 'COMPLETED') {
+                    activity()
+                        ->performedOn($this)
+                        ->causedBy($this->user)
+                        ->withProperties(['data' => $captureData])
+                        ->log('capture returned non-completed status');
+
+                    return false;
+                }
+
+                $paidCents = (int) round((float) data_get($captureData, 'purchase_units.0.payments.captures.0.amount.value', 0) * 100);
+
+                return $this->finalizeIfAmountOk($paidCents, $captureData);
+            }
+
+            activity()
+                ->performedOn($this)
+                ->causedBy($this->user)
+                ->withProperties(['data' => $data])
+                ->log('transaction retrieved');
         } catch (\Throwable $t) {
             Log::error('failed to verify order', [
                 'order' => $this,
@@ -187,6 +214,39 @@ class Order extends Model
         }
 
         return false;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function finalizeIfAmountOk(int $paidCents, array $data): bool
+    {
+        $expectedCents = $this->event->base_price;
+
+        if ($paidCents < $expectedCents) {
+            Log::error('payment amount mismatch', [
+                'order_id' => $this->order_id,
+                'paid_cents' => $paidCents,
+                'expected_cents' => $expectedCents,
+            ]);
+            activity()
+                ->performedOn($this)
+                ->causedBy($this->user)
+                ->withProperties(['data' => $data, 'expected_cents' => $expectedCents])
+                ->log('payment amount mismatch');
+
+            return false;
+        }
+
+        activity()
+            ->performedOn($this)
+            ->causedBy($this->user)
+            ->withProperties(['data' => $data])
+            ->log('transaction verified');
+
+        $this->handle_payment_success();
+
+        return true;
     }
 
     protected function handle_payment_success(): void

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Event;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,8 @@ class Regos extends Component
 
     public int $event_id;
 
+    public Event $event;
+
     /** @var array<int, string> */
     protected array $sortable = ['rego_paid_at', 'name', 'kennel'];
 
@@ -32,7 +35,8 @@ class Regos extends Component
         $this->regos = collect();
         $this->orderby = 'rego_paid_at';
         $this->direction = 'asc';
-        $this->max = 130;
+        $this->event = Event::find($eventId);
+        $this->max = $this->event->max_regos;
         $this->event_id = $eventId;
     }
 
@@ -55,7 +59,7 @@ class Regos extends Component
             ->get()
             ->keyBy('id');
 
-        $this->count = $verifiedUsers->count();
+        $this->count = $this->event->paidRegosCount();
         $this->regos = User::whereIn('id', $verifiedUsers->keys())
             ->get()
             ->map(function ($user) use ($verifiedUsers) {
