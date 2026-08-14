@@ -21,6 +21,8 @@ class QuickLoginForm extends Component
 
     public string $phone = '';
 
+    public string $kennel = '';
+
     public ?bool $userExists = null;
 
     public function checkEmail(): void
@@ -72,6 +74,7 @@ class QuickLoginForm extends Component
             'email' => $this->email,
             'password' => Str::random(40),
             'phone' => $this->phone,
+            'kennel' => $this->kennel ?: null,
         ]);
 
         $this->sendMagicLink($user);
