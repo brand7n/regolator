@@ -83,9 +83,9 @@ class User extends Authenticatable implements FilamentUser, PasskeyUser
     // use HasApiTokens;
     // use HasFactory;
     use HasProfilePhoto;
+
     // use TwoFactorAuthenticatable;
     use LogsActivity;
-
     use Notifiable;
     use PasskeyAuthenticatable;
     use SoftDeletes;
