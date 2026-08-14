@@ -44,5 +44,31 @@
                 </x-button>
             </div>
         </form>
+
+        <div x-data="{ error: '' }" class="mt-6" x-cloak x-show="window.Passkeys?.isSupported()">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">or</span>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                @click="
+                    error = '';
+                    window.Passkeys.verify()
+                        .then(() => window.location.href = '/dashboard')
+                        .catch(err => { error = err.message; });
+                "
+                class="mt-4 w-full inline-flex justify-center items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
+            >
+                Sign in with a passkey
+            </button>
+
+            <p x-show="error" x-text="error" class="mt-3 text-sm text-red-600 dark:text-red-400"></p>
+        </div>
     </x-authentication-card>
 </x-guest-layout>
