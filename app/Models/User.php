@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -76,7 +78,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, PasskeyUser
 {
     // use HasApiTokens;
     // use HasFactory;
@@ -85,6 +87,7 @@ class User extends Authenticatable implements FilamentUser
     // use TwoFactorAuthenticatable;
     use LogsActivity;
     use Notifiable;
+    use PasskeyAuthenticatable;
     use SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions

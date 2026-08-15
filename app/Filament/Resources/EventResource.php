@@ -52,8 +52,12 @@ class EventResource extends Resource
                     ->required(),
                 TextInput::make('event_tag')->required(),
                 Toggle::make('private')
-                    ->label('Private (invite only)')
-                    ->default(true),
+                    ->label('Private (invite only)'),
+                TextInput::make('max_regos')
+                    ->label('Max Registrations')
+                    ->numeric()
+                    ->default(50)
+                    ->helperText('Maximum number of paid registrations allowed for this event. Payments will be disallowed once reached.'),
                 DateTimePicker::make('starts_at')
                     ->seconds(false)
                     ->native(false)
