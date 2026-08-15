@@ -50,6 +50,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * quiet phpstan error
  *
  * @property string|null $user_name
+ * @property string|null $short_bus
  */
 class Order extends Model
 {
@@ -64,6 +65,7 @@ class Order extends Model
         'user_id',
         'event_id',
         'status',
+        'comment',
         'event_info',
         'verified_at',
     ];
