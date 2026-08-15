@@ -22,5 +22,10 @@
     "allowScripts": {
         "esbuild@0.25.7": true,
         "fsevents@2.3.3": true
+    },
+    "overrides": {
+        "sucrase": {
+            "glob": "^13.0.6"
+        }
     }
 }
