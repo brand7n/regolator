@@ -80,7 +80,6 @@ class GpxTrack extends Component
             403
         );
 
-        Storage::disk('public')->delete($track->path);
         $track->delete();
     }
 

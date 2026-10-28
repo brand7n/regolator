@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
+use App\Models\Kennel;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
@@ -47,7 +48,8 @@ class EventResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->helperText('Freeform name — an existing kennel is reused when it matches ignoring case.'),
-                    ]),
+                    ])
+                    ->createOptionUsing(fn (array $data): ?int => Kennel::resolve($data['name'])?->id),
                 TextInput::make('base_price')
                     ->prefix('$')
                     ->numeric()

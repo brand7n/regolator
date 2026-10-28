@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\EventResource\Pages;
 
 use App\Filament\Resources\EventResource;
+use App\Filament\Resources\EventTrackResource;
 use App\Filament\Resources\MessageResource;
 use App\Mail\RegoInvite;
 use App\Models\Event;
@@ -37,6 +38,10 @@ class EditEvent extends EditRecord
                 ->label('Messages')
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->url(MessageResource::getUrl('index', ['tableFilters' => ['event_id' => ['value' => $event->id]]])),
+            Actions\Action::make('tracks')
+                ->label('Tracks')
+                ->icon('heroicon-o-map')
+                ->url(EventTrackResource::getUrl('index', ['tableFilters' => ['event_id' => ['value' => $event->id]]])),
             Actions\Action::make('export_orders')
                 ->label('Export CSV')
                 ->icon('heroicon-o-arrow-down-tray')

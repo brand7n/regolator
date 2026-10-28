@@ -22,7 +22,7 @@ components, or Filament resources. `app/Http/Controllers/Controller.php` is an e
 app/
   Actions/{Fortify,Jetstream}/    auth & profile actions wired to Fortify/Jetstream providers
   Console/Commands/               ExportOrders, VerifyPendingOrders, SyncGoogleCalendar
-  Filament/Resources/             Event, Order, User, Message CRUD (+ Pages/, Widgets/)
+  Filament/Resources/             Event, Order, User, Message, Kennel, Track CRUD (+ Pages/, Widgets/)
   Http/Controllers/Controller.php base class only
   Jobs/SendEventMessage.php       one queued mail per message recipient
   Livewire/                       Paypal, Regos, EventInfo, LocationMap, GpxTrack, Auth/QuickLoginForm
@@ -109,6 +109,9 @@ forward; only `PAYMENT_VERIFIED` counts toward capacity and the public roster.
   `User::canAccessPanel()` returns `is_admin`.
 
 ### Admin flows
+- `KennelResource` — CRUD over canonical kennels (event count per row). `EventTrackResource` is
+  list-only (`/admin/tracks`): event/user/kennel/points/size columns, per-row GPX download, and a
+  `tracks` header action on the event edit page that opens the list filtered to that event.
 - `EventResource` / `UserResource` — plain CRUD (`UserResource::Pages/ListUsersByShirtSize.php` is
   a custom roster page).
 - `OrderResource::Pages/EditOrder` — header actions `block`/`unblock`, `resend_invite`,

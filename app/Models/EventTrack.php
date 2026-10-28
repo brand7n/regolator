@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use SimpleXMLElement;
 
 /**
@@ -42,6 +43,14 @@ class EventTrack extends Model
         'points_overview' => 'array',
         'size' => 'integer',
     ];
+
+    /** Deleting a track always removes its GPX file from disk. */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $track): void {
+            Storage::disk('public')->delete($track->path);
+        });
+    }
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
