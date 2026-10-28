@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use App\Models\Kennel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,14 +17,46 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
+    Route::get('/dashboard', function (Request $request) {
+        $show = $request->query('show') === 'past' ? 'past' : 'upcoming';
+
         $events = Event::with('creator')
-            ->where('ends_at', '>=', now())
-            ->orderBy('starts_at')
+            ->when(
+                $show === 'past',
+                fn ($query) => $query->past()->orderByDesc('starts_at'),
+                fn ($query) => $query->upcoming()->orderBy('starts_at'),
+            )
             ->get();
 
-        return view('dashboard', ['events' => $events]);
+        return view('dashboard', ['events' => $events, 'show' => $show]);
     })->name('dashboard');
+    Route::get('/tracks', function (Request $request) {
+        $kennel = $request->integer('kennel') ? Kennel::find($request->integer('kennel')) : null;
+
+        abort_if($request->integer('kennel') && ! $kennel, 404);
+
+        $from = $request->date('from')?->toDateString();
+        $to = $request->date('to')?->toDateString();
+
+        $events = Event::query()
+            ->past()
+            ->has('tracks')
+            ->when($kennel, fn ($query) => $query->where('kennel_id', $kennel->id))
+            ->when($from, fn ($query) => $query->where('starts_at', '>=', Carbon::parse($from)->startOfDay()))
+            ->when($to, fn ($query) => $query->where('starts_at', '<=', Carbon::parse($to)->endOfDay()))
+            ->with('kennel')
+            ->withCount('tracks')
+            ->orderByDesc('starts_at')
+            ->get();
+
+        return view('tracks', [
+            'kennel' => $kennel,
+            'events' => $events,
+            'kennels' => $events->groupBy('kennel_id'),
+            'from' => $from,
+            'to' => $to,
+        ]);
+    })->name('tracks.index');
     Route::get('/events/{event}', function (Event $event) {
         $event->load('creator');
 

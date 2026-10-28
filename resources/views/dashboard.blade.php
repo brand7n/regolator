@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-rego-section>
-        <x-slot name="title">Upcoming Events</x-slot>
+        <x-slot name="title">{{ $show === 'past' ? 'Past Events' : 'Upcoming Events' }}</x-slot>
         <x-slot name="content">
             @forelse($events as $event)
                 <a href="{{ route('events.show', $event) }}" class="block mb-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
@@ -22,8 +22,15 @@
                     </div>
                 </a>
             @empty
-                <p class="text-gray-600 dark:text-gray-400">No upcoming events.</p>
+                <p class="text-gray-600 dark:text-gray-400">
+                    {{ $show === 'past' ? 'No past events.' : 'No upcoming events.' }}
+                </p>
             @endforelse
+
+            <div class="mt-4 flex gap-4 text-sm">
+                <a href="{{ route('dashboard') }}" class="{{ $show === 'past' ? 'underline text-gray-500' : 'font-bold' }}">Upcoming</a>
+                <a href="{{ route('dashboard', ['show' => 'past']) }}" class="{{ $show === 'past' ? 'font-bold' : 'underline text-gray-500' }}">Past</a>
+            </div>
         </x-slot>
     </x-rego-section>
 </x-app-layout>

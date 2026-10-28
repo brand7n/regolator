@@ -75,4 +75,10 @@
             <livewire:regos :event-id="$event->id" />
         </x-slot>
     </x-rego-section>
+    <x-rego-section>
+        <x-slot name="title">TRACKS</x-slot>
+        <x-slot name="content">
+            <livewire:gpx-track :event-id="$event->id" />
+        </x-slot>
+    </x-rego-section>
 </x-app-layout>
