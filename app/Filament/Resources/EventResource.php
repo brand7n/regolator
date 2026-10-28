@@ -34,9 +34,20 @@ class EventResource extends Resource
                     ->required(),
                 TextInput::make('name')->required(),
                 TextInput::make('location')->required(),
-                TextInput::make('lat')->required(),
-                TextInput::make('lon')->required(),
-                TextInput::make('kennel')->required(),
+                TextInput::make('lat')->numeric(),
+                TextInput::make('lon')->numeric(),
+                Select::make('kennel_id')
+                    ->label('Kennel')
+                    ->relationship('kennel', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Freeform name — an existing kennel is reused when it matches ignoring case.'),
+                    ]),
                 TextInput::make('base_price')
                     ->prefix('$')
                     ->numeric()

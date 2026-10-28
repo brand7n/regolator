@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string $name
- * @property string $kennel
+ * @property int|null $kennel_id
+ * @property-read Kennel|null $kennel
  * @property string $description
  * @property string|null $event_photo_path
  * @property Carbon $starts_at
@@ -24,6 +26,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $location
  * @property array<array-key, mixed>|null $properties
  * @property int $created_by
+ * @property string|null $google_event_id
  * @property int $private
  * @property string|null $event_tag
  * @property int $base_price
@@ -47,7 +50,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereEventPhotoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereEventTag($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereKennel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereKennelId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereLat($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereLon($value)
@@ -66,7 +69,9 @@ class Event extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll();
+            ->logAll()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName): string => "event {$eventName}: {$this->name}");
     }
 
     protected $guarded = [];
@@ -90,6 +95,22 @@ class Event extends Model
         $this->base_price = (int) round($value * 100);
     }
 
+    /** Assigning a freeform `kennel` string resolves it to a canonical kennel. */
+    public function setAttribute($key, $value)
+    {
+        if ($key === 'kennel') {
+            return parent::setAttribute('kennel_id', Kennel::resolve(is_string($value) ? $value : null)?->id);
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
+    /** @return BelongsTo<Kennel, $this> */
+    public function kennel(): BelongsTo
+    {
+        return $this->belongsTo(Kennel::class);
+    }
+
     /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
@@ -106,6 +127,24 @@ class Event extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    /** @return HasMany<EventTrack, $this> */
+    public function tracks(): HasMany
+    {
+        return $this->hasMany(EventTrack::class);
+    }
+
+    /** @param Builder<Event> $query */
+    public function scopeUpcoming(Builder $query): void
+    {
+        $query->where('ends_at', '>=', now());
+    }
+
+    /** @param Builder<Event> $query */
+    public function scopePast(Builder $query): void
+    {
+        $query->where('ends_at', '<', now());
     }
 
     public function getOrder(User $user): ?Order
