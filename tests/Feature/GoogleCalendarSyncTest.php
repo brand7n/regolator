@@ -52,6 +52,7 @@ test('imports past and upcoming events from the calendar', function () {
 
     $past = Event::where('google_event_id', 'past-1')->firstOrFail();
     expect($past->name)->toBe('NVHHH 1900')
+        ->and($past->event_tag)->toBe('NVHHH1900')
         ->and($past->location)->toBe('Somewhere, PA')
         ->and($past->description)->toBe('The original.')
         ->and($past->created_by)->toBe($this->admin->id)
@@ -190,4 +191,91 @@ test('re-running backfills the creator on events that already exist', function (
     expect($existing->created_by)->toBe($hare->id)
         ->and($existing->name)->toBe('NVHHH #1317: HARE NEEDED')
         ->and(Event::count())->toBe(1);
+});
+
+test('tags are derived from the event title', function () {
+    Http::fake([
+        'www.googleapis.com/*' => Http::response([
+            'items' => [
+                [
+                    'id' => 'tag-1',
+                    'summary' => 'NVHHH #1317: HARE NEEDED',
+                    'start' => ['dateTime' => '2026-11-07T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-07T21:00:00-05:00'],
+                ],
+                [
+                    'id' => 'tag-2',
+                    'summary' => 'Red Dress Run — NVHHH 1318',
+                    'start' => ['dateTime' => '2026-11-14T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-14T21:00:00-05:00'],
+                ],
+                [
+                    'id' => 'tag-3',
+                    'summary' => '🍺',
+                    'start' => ['dateTime' => '2026-11-21T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-21T21:00:00-05:00'],
+                ],
+            ],
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect(Event::where('google_event_id', 'tag-1')->value('event_tag'))->toBe('NVHHH1317')
+        ->and(Event::where('google_event_id', 'tag-2')->value('event_tag'))->toBe('REDDRESSRUN')
+        ->and(Event::where('google_event_id', 'tag-3')->value('event_tag'))->toBe('tag-3');
+});
+
+test('re-syncing replaces a calendar-id tag but keeps a manual one', function () {
+    $legacy = Event::create([
+        'name' => 'NVHHH 1317',
+        'description' => '',
+        'location' => '',
+        'starts_at' => '2026-11-07 18:00:00',
+        'ends_at' => '2026-11-07 21:00:00',
+        'google_event_id' => 'retag-1',
+        'event_tag' => 'retag-1',
+        'created_by' => $this->admin->id,
+        'base_price' => 0,
+        'max_regos' => 0,
+        'private' => false,
+    ]);
+
+    $manual = Event::create([
+        'name' => 'NVHHH 1318',
+        'description' => '',
+        'location' => '',
+        'starts_at' => '2026-11-14 18:00:00',
+        'ends_at' => '2026-11-14 21:00:00',
+        'google_event_id' => 'retag-2',
+        'event_tag' => 'CUSTOM',
+        'created_by' => $this->admin->id,
+        'base_price' => 0,
+        'max_regos' => 0,
+        'private' => false,
+    ]);
+
+    Http::fake([
+        'www.googleapis.com/*' => Http::response([
+            'items' => [
+                [
+                    'id' => 'retag-1',
+                    'summary' => 'NVHHH #1317: HARE NEEDED',
+                    'start' => ['dateTime' => '2026-11-07T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-07T21:00:00-05:00'],
+                ],
+                [
+                    'id' => 'retag-2',
+                    'summary' => 'NVHHH #1318: HARE NEEDED',
+                    'start' => ['dateTime' => '2026-11-14T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-14T21:00:00-05:00'],
+                ],
+            ],
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect($legacy->refresh()->event_tag)->toBe('NVHHH1317')
+        ->and($manual->refresh()->event_tag)->toBe('CUSTOM');
 });

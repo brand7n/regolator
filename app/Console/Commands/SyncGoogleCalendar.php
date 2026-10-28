@@ -85,7 +85,7 @@ class SyncGoogleCalendar extends Command
 
                 if (! $event->exists) {
                     $event->kennel_id = Kennel::resolve($kennel)?->id;
-                    $event->event_tag = $externalId;
+                    $event->event_tag = $this->tag($name, $externalId);
                     $event->base_price = 0;
                     $event->max_regos = 0;
                     $event->private = 0;
@@ -98,6 +98,12 @@ class SyncGoogleCalendar extends Command
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
                 ]);
+
+                // Rows imported before tags were derived from the title still
+                // carry the calendar id; refresh those, but never a manual edit.
+                if ($event->exists && $event->event_tag === $event->google_event_id) {
+                    $event->event_tag = $this->tag($name, $externalId);
+                }
 
                 // Refreshed on every run so re-syncing backfills existing rows.
                 // ponytail: a manual admin reassignment is overwritten when the
@@ -121,6 +127,20 @@ class SyncGoogleCalendar extends Command
         $this->info("Imported {$created} new event(s), updated {$updated}.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Derive an event tag from the calendar title: "NVHHH #1317: HARE NEEDED"
+     * becomes "NVHHH1317". Everything after the first separator is dropped
+     * (it is usually status noise) and the rest is reduced to A-Z0-9, since the
+     * tag ends up in a PayPal purchase description.
+     */
+    private function tag(string $name, string $fallback): string
+    {
+        $head = preg_split('/[:\x{2013}\x{2014}|]/u', $name)[0] ?? $name;
+        $tag = mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $head) ?? '', 'UTF-8');
+
+        return $tag === '' ? $fallback : mb_substr($tag, 0, 24);
     }
 
     private function moment(mixed $value): ?Carbon
