@@ -37,6 +37,8 @@ services:
   caddy:
     image: caddy:latest
     container_name: regolator-caddy
+    # Local dev only: the production server runs its own Caddy.
+    # Start with: docker compose --profile local up -d
     profiles:
       - local
     ports:
@@ -46,3 +48,4 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       - php
+    restart: unless-stopped
