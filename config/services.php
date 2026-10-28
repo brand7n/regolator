@@ -31,6 +31,20 @@ return [
         ],
     ],
 
+    'google' => [
+        'calendar_api_key' => env('GOOGLE_CALENDAR_API_KEY'),
+        'calendar_id' => env('GOOGLE_CALENDAR_ID'),
+        'kennel' => env('GOOGLE_CALENDAR_KENNEL', 'NVHHH'),
+        // Imported events store wall-clock time from this zone (see ImportStrava).
+        'timezone' => env('GOOGLE_CALENDAR_TIMEZONE', 'America/New_York'),
+    ],
+
+    'strava' => [
+        'client_id' => env('STRAVA_CLIENT_ID'),
+        'client_secret' => env('STRAVA_CLIENT_SECRET'),
+        'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
+    ],
+
     'paypal' => [
         'client_id' => env('PAYPAL_CLIENT_ID', ''),
         'client_secret' => env('PAYPAL_CLIENT_SECRET', ''),
