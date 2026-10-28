@@ -29,7 +29,8 @@ class Message extends Model
     {
         return LogOptions::defaults()
             ->logAll()
-            ->logOnlyDirty();
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName): string => "message {$eventName}: {$this->subject}");
     }
 
     /** @return BelongsTo<Event, $this> */

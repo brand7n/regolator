@@ -2,10 +2,13 @@
 
 use App\Filament\Widgets\ActivityLogWidget;
 use App\Models\Event;
+use App\Models\Message;
+use App\Models\MessageStatus;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\User;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
     $this->admin = User::create([
@@ -113,18 +116,50 @@ test('activity log widget renders subject and changed fields', function () {
         ->assertSee('nerd_name');
 });
 
-test('activity log widget filters out generic updated entries', function () {
-    // Simulate an old-style "updated" entry
+test('event updates are labelled and only logged when dirty', function () {
+    $count = $this->event->activities()->count();
+
+    // Unchanged save (e.g. a no-op calendar sync) must not write activity
+    $this->event->save();
+    expect($this->event->activities()->count())->toBe($count);
+
+    $this->event->name = 'Renamed Event';
+    $this->event->save();
+
+    $activity = $this->event->activities()->latest('id')->first();
+    expect($this->event->activities()->count())->toBe($count + 1)
+        ->and($activity->description)->toBe('event updated: Renamed Event')
+        ->and($activity->properties->get('attributes'))->toHaveKey('name');
+});
+
+test('message updates are labelled', function () {
+    $message = Message::create([
+        'event_id' => $this->event->id,
+        'created_by' => $this->admin->id,
+        'subject' => 'Camp Notice',
+        'body' => '<p>hi</p>',
+        'recipient_filter' => [],
+        'status' => MessageStatus::Draft,
+    ]);
+
+    $message->subject = 'Camp Notice v2';
+    $message->save();
+
+    $activity = $message->activities()->latest('id')->first();
+    expect($activity->description)->toBe('message updated: Camp Notice v2');
+});
+
+test('activity log widget shows entries older than a month', function () {
     activity()
         ->performedOn($this->user)
         ->causedBy($this->admin)
-        ->log('updated');
+        ->log('ancient entry');
 
-    $this->user->kennel = 'New Kennel';
-    $this->user->save();
+    $activity = Activity::query()->latest('id')->first();
+    $activity->created_at = now()->subMonths(3);
+    $activity->save();
 
     Livewire::actingAs($this->admin)
         ->test(ActivityLogWidget::class)
-        ->assertSee('user updated')
-        ->assertDontSee('"updated"');
+        ->assertSee('ancient entry');
 });

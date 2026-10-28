@@ -6,7 +6,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityLogWidget extends BaseWidget
@@ -20,12 +19,7 @@ class ActivityLogWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                Activity::query()
-                    ->with(['causer', 'subject'])
-                    ->where('description', '!=', 'updated')
-                    ->where('created_at', '>=', Carbon::now()->subMonth())
-            )
+            ->query(Activity::query()->with(['causer', 'subject']))
             ->columns([
                 TextColumn::make('user')
                     ->label('User')
@@ -94,7 +88,6 @@ class ActivityLogWidget extends BaseWidget
             ])
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No activity found.')
-            ->defaultPaginationPageOption(100)
-            ->paginated([50, 100, 'all']);
+            ->paginated([50]);
     }
 }
