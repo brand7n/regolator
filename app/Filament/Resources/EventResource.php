@@ -39,17 +39,19 @@ class EventResource extends Resource
                 TextInput::make('lon')->numeric(),
                 Select::make('kennel_id')
                     ->label('Kennel')
-                    ->relationship('kennel', 'name')
+                    ->relationship('kennel', 'abbreviation')
+                    ->getOptionLabelFromRecordUsing(fn (Kennel $record): string => $record->label())
                     ->searchable()
                     ->preload()
                     ->required()
                     ->createOptionForm([
-                        TextInput::make('name')
+                        TextInput::make('abbreviation')
+                            ->label('Abbreviation')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->helperText('Freeform name — an existing kennel is reused when it matches ignoring case.'),
                     ])
-                    ->createOptionUsing(fn (array $data): ?int => Kennel::resolve($data['name'])?->id),
+                    ->createOptionUsing(fn (array $data): ?int => Kennel::resolve($data['abbreviation'])?->id),
                 TextInput::make('base_price')
                     ->prefix('$')
                     ->numeric()
@@ -142,7 +144,21 @@ class EventResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('starts_at')
+                    ->dateTime('D M j, Y g:ia')
+                    ->timezone('America/New_York')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('event_tag')
+                    ->label('Tag')
+                    ->badge()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('kennel.abbreviation')
+                    ->label('Kennel')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('past')

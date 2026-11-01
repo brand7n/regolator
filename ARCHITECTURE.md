@@ -25,7 +25,7 @@ app/
   Filament/Resources/             Event, Order, User, Message, Kennel, Track CRUD (+ Pages/, Widgets/)
   Http/Controllers/Controller.php base class only
   Jobs/SendEventMessage.php       one queued mail per message recipient
-  Livewire/                       Paypal, Regos, EventInfo, LocationMap, GpxTrack, Auth/QuickLoginForm
+  Livewire/                       Paypal, Regos, EventInfo, LocationMap, TracksMap, GpxTrack, Auth/QuickLoginForm
   Mail/                           EventMessage, PaymentConfirmation, QuickLogin, RegoInvite
   Models/                         Event, EventTrack, Order, User, Message, MessageRecipient + 3 enums
   Providers/                      App, Fortify, Jetstream, Filament/AdminPanelProvider
@@ -56,7 +56,7 @@ User 1─n Order
 | `Order` | `app/Models/Order.php` | A user↔event registration. `event_info` JSON stores answers to the event's custom fields. `LogsActivity`, `SoftDeletes`. Owns the PayPal verification logic. |
 | `Message` | `app/Models/Message.php` | Bulk-email campaign: `recipient_filter` (array of `OrderStatus`), markdown body, optional personalization field lists, `sent_count`/`failed_count`. `resolveRecipients()`, `updateDeliveryCounts()`. |
 | `MessageRecipient` | `app/Models/MessageRecipient.php` | Per-recipient delivery row (`is_test`, `status`, `error`, `sent_at`). |
-| `Kennel` | `app/Models/Kennel.php` | Canonical kennel names. Events are tied through `events.kennel_id`; freeform strings (`Event::create(['kennel' => 'NVHHH'])`, `$event->kennel = '...'`) are intercepted in `Event::setAttribute()` and normalised by `Kennel::resolve()` (case/whitespace-insensitive find-or-create), so one kennel row serves every spelling variant. `$event->kennel` reads the model; `users.kennel` is still freeform. |
+| `Kennel` | `app/Models/Kennel.php` | Canonical kennel: `abbreviation` ("NVHHH") plus optional `full_name` ("Nittany Valley Hash House Harriers"); `label()` returns the long name when known. Events are tied through `events.kennel_id`; freeform strings (`Event::create(['kennel' => 'NVHHH'])`, `$event->kennel = '...'`) are intercepted in `Event::setAttribute()` and normalised by `Kennel::resolve()`, which matches either field (case/whitespace-insensitive find-or-create), so one kennel row serves every spelling variant. `$event->kennel` reads the model; `users.kennel` is still freeform. |
 | `EventTrack` | `app/Models/EventTrack.php` | One GPX track per attendee per event: `path` on the `public` disk, `size`, and two Ramer–Peucker polylines — `points` (5 m tolerance) and `points_overview` (30 m) — so the map never re-parses the GPX. |
 
 Status enums (string-backed, cast on the models):
@@ -80,7 +80,10 @@ forward; only `PAYMENT_VERIFIED` counts toward capacity and the public roster.
    with `?show=past` (scopes on `app/Models/Event.php`) → `resources/views/dashboard.blade.php`,
    which renders the Upcoming/Past switch.
 3. `GET /events/{event}` → route-model-bound `Event` → `resources/views/event.blade.php`, which
-   mounts five Livewire components: `location-map`, `event-info`, `paypal`, `regos`, `gpx-track`.
+   mounts six Livewire components: `location-map`, `event-info`, `paypal`, `regos`, `gpx-track`,
+   and `tracks-map` (only when the event has tracks).
+   `paypal` (waiver + payment) is dropped once `ends_at` passes; `gpx-track` is hidden until
+   `starts_at` (admins always see it), and both components enforce the same rule server-side.
 4. Each Livewire component re-queries its own state on every round trip; there is no
    controller layer coordinating them.
 
@@ -156,28 +159,68 @@ is run by hand, periodically. It reads a **public** calendar with a plain API ke
 `GET https://www.googleapis.com/calendar/v3/calendars/{id}/events?key=…&singleEvents=true`
 (`config/services.php` → `google.calendar_api_key` / `calendar_id` / `kennel`), follows
 `nextPageToken`, skips `status=cancelled`, and upserts on `events.google_event_id` (unique).
+Imported tags are the title head in A-Z0-9, always prefixed with the kennel abbreviation
+(`Red Dress Run` → `NVHHHREDDRESSRUN`, `Red Dress Run NVHHH 1318` → `NVHHHREDDRESSRUN1318`);
+a title with no words left (emoji only) falls back to the calendar id, and a manual tag is never
+overwritten.
 Only `name/description/location/starts_at/ends_at` are refreshed on re-sync; `created_by`,
 `kennel_id`, `event_tag`, `base_price`, `max_regos`, `private` are set once on insert — so imported
-past events become normal `Event` rows that the admin can edit or attach regos to.
+past events become normal `Event` rows that the admin can edit or attach regos to. A repeated title
+(every yearly "GOTENGAGED") would break the unique `event_tag` index, so `Event`'s saving hook
+suffixes the collision with the start date and a counter before it reaches the database. The **entire raw
+calendar item** is stored verbatim in `events.google_payload` (nullable JSON) on every sync, so
+`etag/htmlLink/organizer/iCalUID/recurringEventId/transparency` stay available without schema
+changes. Deleting an event in Google does **not** delete it locally (no `--prune`; deliberate).
 
 ## 6c. Data flow: GPX tracks
 
 ```
 resources/views/event.blade.php → <livewire:gpx-track>  (app/Livewire/GpxTrack.php)
   upload (≤10 MB, .gpx) → validate extensions:gpx → EventTrack::pointsFrom() (SimpleXML, LIBXML_NONET)
-  → deny unless paid (`PAYMENT_VERIFIED`) / host / admin  (HTTP 403)
+  → upload: any logged-in user once `starts_at` has passed (admin earlier); 403 otherwise
+  → delete: uploader, host, or admin only (HTTP 403); deleting is narrower —
+    uploader, host or admin only, so a run-mate cannot remove someone else's trail
   → Storage::disk('public')->put gpx/{event_id}/… ; firstOrNew(event_id,user_id) so re-upload
     replaces and deletes the old file
   → `points` (5 m) + `points_overview` (30 m) JSON on the EventTrack row
-  → the map draws the coarse tier and calls `LocationMap::detail(ids)` (`#[Renderless]`)
+  → the map draws the coarse tier and calls `TracksMap::detail(ids)` (`#[Renderless]`)
     for tracks in view once zoom ≥ 14, so big maps stay small but zoom in sharp
-LocationMap (app/Livewire/LocationMap.php) reads event->tracks() and renders one Leaflet polyline
-per track, then fitBounds() — the map stays `wire:ignore` and is built once on mount.
+`TracksMap` (app/Livewire/TracksMap.php) renders one Leaflet polyline per track and fitBounds()s
+them; it never draws a pin. `LocationMap` (app/Livewire/LocationMap.php) is the event location
+only — a pin when `Event::hasCoordinates()`, plus the address popup — and holds no trail logic.
+Both stay `wire:ignore` and are built once on mount.
 
 `GET /tracks` (`routes/web.php`, view `resources/views/tracks.blade.php`) browses trails by kennel:
 past events that have tracks group by `kennel_id`; `?kennel={id}` opens one kennel and passes
-`kennel-id` to the same `LocationMap` component (no marker, all of that kennel's tracks on one map).
+`kennel-id` to `TracksMap` (all of that kennel's tracks on one map).
+
+`/embed/trails` (`routes/embed.php`, view `resources/views/embed/trails.blade.php`) is the public,
+iframe-friendly map for other sites. It is registered through `withRouting(then:)` **outside the
+`web` group**: no session cookie (a third-party iframe never gets it back) and no global
+`X-Frame-Options`; it sends `Content-Security-Policy: frame-ancestors *` + `Cache-Control` itself.
+It reuses `Event::withTrails()`, `EventTrack::mapPayload()` and `EventTrack::detailPayload()` — the
+zoom-in detail comes from `GET /embed/trails/detail` via `fetch()`, not a Livewire round trip.
 ```
+
+## 6d. Data flow: event details from the description
+
+`app:extract-event-details [--event=id|slug] [--limit=] [--force]`
+(`app/Console/Commands/ExtractEventDetails.php`) runs an LLM over `events.description` and stores
+the result under `properties.trail` — the same schema-less JSON column as registration fields, so
+no migration and no clash with `properties.fields`.
+
+```
+EventDetails (app/Ai/EventDetails.php)   typed target: hares[], hash_cash, start_location,
+                                          directions (last three nullable)
+  → Cognesy `SchemaFactory::toJsonSchema()` derives the JSON schema from property types + the
+    #[Description] attributes (attributes live in `laravel/vendor/...`, one source of truth)
+  → `Cognesy\Polyglot\Inference\Config\LLMConfig::fromPreset($driver)` fills apiUrl/endpoint/
+    default model; `config/services.php` → `llm.*` (`LLM_DRIVER/API_KEY/API_URL/MODEL/MAX_TOKENS`)
+    overrides them, then `StructuredOutput->with(...)->get()` returns the populated object
+  → command writes `properties['trail']`, skipping events that already have one unless `--force`
+```
+
+Runs offline-safe: any HTTP/provider failure is caught and logged, the event is left untouched.
 
 ## 7. Entry points
 
@@ -207,8 +250,9 @@ past events that have tracks group by `kennel_id`; `?kennel={id}` opens one kenn
 | `giggsey/libphonenumber-for-php` | Phone normalization in `QuickLoginForm` and `UserResource` |
 | `bepsvpt/secure-headers` | Global `SecureHeadersMiddleware`; policy in `config/secure-headers.php` |
 | `laravel/nightwatch` | Observability agent (compose `nightwatch` service) |
-| `leaflet` (npm) | `app/Livewire/LocationMap.php` |
+| `leaflet` (npm) | `app/Livewire/LocationMap.php`, `app/Livewire/TracksMap.php` |
 | `tailwindcss` + `vite` | `resources/css`, `resources/js`, `vite.config.js`, `npm run build` |
+| `cognesy/instructor-struct` 2.14 | Typed LLM extraction in `app/Ai/*` + `app:extract-event-details`; schema from property types, provider presets for openai/anthropic/… |
 | PayPal REST API | Called directly with `Http::` — no SDK; credentials in `config/services.php` → `paypal.client_id/client_secret/sandbox` |
 | Google Calendar API v3 | Read-only import in `SyncGoogleCalendar` with an API key (`services.google.*`); no SDK, no OAuth |
 | `simplexml` (PHP ext) | GPX parsing in `EventTrack::pointsFrom()`, RDP simplification in `EventTrack::simplify()` |

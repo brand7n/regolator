@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Event;
 use App\Models\EventTrack;
-use App\Models\OrderStatus;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +34,7 @@ class GpxTrack extends Component
         $this->validate(['gpx' => ['required', 'file', 'max:10240', 'extensions:gpx']]);
 
         $user = Auth::user();
-        abort_unless($user instanceof User && $this->canContribute($user, $this->event()), 403);
+        abort_unless($user instanceof User && $this->canUpload($user, $this->event()), 403);
 
         abort_if($this->gpx === null, 422);
 
@@ -74,11 +73,7 @@ class GpxTrack extends Component
         $track = EventTrack::with('event')->findOrFail($trackId);
         $user = Auth::user();
 
-        abort_unless(
-            $user instanceof User
-            && ($track->user_id === $user->id || $this->canContribute($user, $track->event)),
-            403
-        );
+        abort_unless($user instanceof User && $this->canDelete($user, $track), 403);
 
         $track->delete();
     }
@@ -90,8 +85,20 @@ class GpxTrack extends Component
 
         return view('livewire.gpx-track', [
             'tracks' => $event->tracks()->with('user')->orderBy('id')->get(),
-            'canUpload' => $user instanceof User && $this->canContribute($user, $event),
+            'canUpload' => $user instanceof User && $this->canUpload($user, $event),
+            'canDelete' => fn (EventTrack $track): bool => $user instanceof User && $this->canDelete($user, $track),
         ]);
+    }
+
+    /**
+     * Removing a track is narrower than adding one: the person who uploaded it,
+     * the host, or an admin — a run-mate cannot delete someone else's trail.
+     */
+    private function canDelete(User $user, EventTrack $track): bool
+    {
+        return $user->is_admin
+            || (int) $track->user_id === $user->id
+            || (int) $track->event->created_by === $user->id;
     }
 
     private function event(): Event
@@ -100,15 +107,12 @@ class GpxTrack extends Component
     }
 
     /**
-     * Paid registrants, the host, and admins may upload or remove tracks.
+     * Anyone logged in may upload once the hash has started — no rego needed,
+     * so a visitor who ran with the pack can still add the trail. Admins skip
+     * the date gate to prepare a map ahead of time.
      */
-    private function canContribute(User $user, Event $event): bool
+    private function canUpload(User $user, Event $event): bool
     {
-        return $user->is_admin
-            || $event->created_by === $user->id
-            || $event->orders()
-                ->where('user_id', $user->id)
-                ->where('status', OrderStatus::PaymentVerified->value)
-                ->exists();
+        return $user->is_admin || $event->starts_at->isPast();
     }
 }

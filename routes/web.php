@@ -39,11 +39,7 @@ Route::middleware([
         $to = $request->date('to')?->toDateString();
 
         $events = Event::query()
-            ->past()
-            ->has('tracks')
-            ->when($kennel, fn ($query) => $query->where('kennel_id', $kennel->id))
-            ->when($from, fn ($query) => $query->where('starts_at', '>=', Carbon::parse($from)->startOfDay()))
-            ->when($to, fn ($query) => $query->where('starts_at', '<=', Carbon::parse($to)->endOfDay()))
+            ->withTrails($kennel?->id, $from, $to)
             ->with('kennel')
             ->withCount('tracks')
             ->orderByDesc('starts_at')

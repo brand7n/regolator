@@ -33,7 +33,7 @@ class EventTrackResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->url(fn (EventTrack $record): string => EventResource::getUrl('edit', ['record' => $record->event_id])),
-                Tables\Columns\TextColumn::make('event.kennel.name')
+                Tables\Columns\TextColumn::make('event.kennel.abbreviation')
                     ->label('Kennel')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('user.name')
@@ -62,7 +62,7 @@ class EventTrackResource extends Resource
                     ->preload(),
                 Tables\Filters\SelectFilter::make('kennel_id')
                     ->label('Kennel')
-                    ->options(fn (): array => Kennel::orderBy('name')->pluck('name', 'id')->all())
+                    ->options(fn (): array => Kennel::orderBy('abbreviation')->pluck('abbreviation', 'id')->all())
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
                         ? $query->whereHas('event', fn (Builder $event) => $event->where('kennel_id', $data['value']))
                         : $query),

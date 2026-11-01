@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-rego-section>
-        <x-slot name="title">{{ $kennel?->name ?? 'All Trail Maps' }}</x-slot>
+        <x-slot name="title">{{ $kennel?->label() ?? 'All Trail Maps' }}</x-slot>
         <x-slot name="content">
             @if($kennel)
                 <p class="mb-4 text-sm">
@@ -37,7 +37,7 @@
 
             @if($events->isNotEmpty())
                 <div class="mb-6">
-                    <livewire:location-map :kennel-id="$kennel?->id" :from="$from" :to="$to" />
+                    <livewire:tracks-map :kennel-id="$kennel?->id" :from="$from" :to="$to" />
                 </div>
             @endif
 
@@ -58,7 +58,7 @@
                 @forelse($kennels as $kennelEvents)
                     @php($groupKennel = $kennelEvents->first()->kennel)
                     <a href="{{ route('tracks.index', array_filter(['kennel' => $groupKennel?->id, 'from' => $from, 'to' => $to])) }}" class="block mb-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ $groupKennel?->name ?? 'Unassigned' }}</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ $groupKennel?->label() ?? 'Unassigned' }}</h2>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
                             {{ $kennelEvents->count() }} {{ Str::plural('event', $kennelEvents->count()) }}
                             &middot; {{ $kennelEvents->sum('tracks_count') }} {{ Str::plural('track', $kennelEvents->sum('tracks_count')) }}

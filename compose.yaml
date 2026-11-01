@@ -49,3 +49,46 @@ services:
     depends_on:
       - php
     restart: unless-stopped
+
+  # Coding agent sandbox: only this project, no secrets, no live database.
+  #   up -d + exec (reusable):  docker compose --profile agent up -d zerostack
+  #                             docker compose exec zerostack zerostack
+  #   one-shot:                 docker compose --profile agent run --rm zerostack zerostack
+  # The container idles on `sleep` so it survives between agent sessions; a TUI
+  # started as PID 1 dies with it and cannot be re-entered.
+  zerostack:
+    build:
+      context: .
+      dockerfile: Dockerfile.zerostack
+    image: regolator-zerostack
+    container_name: regolator-zerostack
+    profiles:
+      - agent
+    working_dir: /home/brandin/regolator
+    command: ["sleep", "infinity"]
+    stdin_open: true
+    tty: true
+    environment:
+      # Together's /v1/models returns a bare JSON array; zerostack 1.8.5 parses
+      # it as {"data":[...]} and warns once per session. Silence that only.
+      - RUST_LOG=error,rig=off
+    # No privileges needed: the agent runs unprivileged userland tools only.
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Spill volume for pest/composer/sqlite; nothing should execute from /tmp.
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m
+    volumes:
+      - .:/home/brandin/regolator
+      # Empty files mask the host's secrets and live data: the agent sees the
+      # project tree, but .env and the SQLite database read as empty.
+      - ./docker/zerostack/empty:/home/brandin/regolator/.env:ro
+      - ./docker/zerostack/empty:/home/brandin/regolator/database/database.sqlite:ro
+      # Reuse the host config (provider/model/key); on Linux: ~/.config/zerostack/config.toml
+      - "${HOME}/Library/Application Support/zerostack/config.toml:/root/.config/zerostack/config.toml:ro"
+      - zerostack-sessions:/root/.local/share/zerostack
+
+volumes:
+  zerostack-sessions:

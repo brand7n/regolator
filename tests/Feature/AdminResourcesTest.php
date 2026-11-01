@@ -23,7 +23,7 @@ beforeEach(function () {
         'password' => 'secret',
     ]);
 
-    $this->kennel = Kennel::create(['name' => 'NVHHH']);
+    $this->kennel = Kennel::create(['abbreviation' => 'NVHHH']);
 
     $this->event = Event::create([
         'name' => 'Spring Trail',
@@ -46,11 +46,14 @@ test('admins can browse kennels', function () {
 test('admins can create a kennel', function () {
     Livewire::actingAs($this->admin)
         ->test(CreateKennel::class)
-        ->fillForm(['name' => 'BFH3'])
+        ->fillForm([
+            'abbreviation' => 'BFH3',
+            'full_name' => 'Blue Falcon Hash House Harriers',
+        ])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    expect(Kennel::where('name', 'BFH3')->exists())->toBeTrue();
+    expect(Kennel::where('abbreviation', 'BFH3')->where('full_name', 'Blue Falcon Hash House Harriers')->exists())->toBeTrue();
 });
 
 test('admins can browse tracks and filter them by kennel', function () {
@@ -70,7 +73,7 @@ test('admins can browse tracks and filter them by kennel', function () {
         ->filterTable('kennel_id', $this->kennel->id)
         ->assertCanSeeTableRecords(EventTrack::all());
 
-    $other = Kennel::create(['name' => 'BFH3']);
+    $other = Kennel::create(['abbreviation' => 'BFH3']);
     Livewire::actingAs($this->admin)
         ->test(ListEventTracks::class)
         ->filterTable('kennel_id', $other->id)

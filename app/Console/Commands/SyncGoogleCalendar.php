@@ -45,7 +45,7 @@ class SyncGoogleCalendar extends Command
             return self::FAILURE;
         }
 
-        $kennel = (string) ($this->option('kennel') ?? config('services.google.kennel'));
+        $kennel = Kennel::resolve((string) ($this->option('kennel') ?? config('services.google.kennel')));
         $from = Carbon::parse($this->option('from') ?? now()->subYears(5)->toDateString());
 
         $created = 0;
@@ -84,8 +84,8 @@ class SyncGoogleCalendar extends Command
                 $event = Event::firstOrNew(['google_event_id' => $externalId]);
 
                 if (! $event->exists) {
-                    $event->kennel_id = Kennel::resolve($kennel)?->id;
-                    $event->event_tag = $this->tag($name, $externalId);
+                    $event->kennel_id = $kennel?->id;
+                    $event->event_tag = $this->tag($name, $externalId, $kennel?->abbreviation);
                     $event->base_price = 0;
                     $event->max_regos = 0;
                     $event->private = 0;
@@ -97,12 +97,13 @@ class SyncGoogleCalendar extends Command
                     'location' => (string) ($item['location'] ?? ''),
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
+                    'google_payload' => $item,
                 ]);
 
                 // Rows imported before tags were derived from the title still
                 // carry the calendar id; refresh those, but never a manual edit.
                 if ($event->exists && $event->event_tag === $event->google_event_id) {
-                    $event->event_tag = $this->tag($name, $externalId);
+                    $event->event_tag = $this->tag($name, $externalId, $kennel->abbreviation);
                 }
 
                 // Refreshed on every run so re-syncing backfills existing rows.
@@ -133,14 +134,27 @@ class SyncGoogleCalendar extends Command
      * Derive an event tag from the calendar title: "NVHHH #1317: HARE NEEDED"
      * becomes "NVHHH1317". Everything after the first separator is dropped
      * (it is usually status noise) and the rest is reduced to A-Z0-9, since the
-     * tag ends up in a PayPal purchase description.
+     * tag ends up in a PayPal purchase description. The model then clamps it
+     * to the length PayPal accepts.
+     *
+     * Imported tags always start with the kennel abbreviation: one carried
+     * later in the title ("Red Dress Run NVHHH 1318") is moved to the front,
+     * one missing entirely ("Red Dress Run") is prepended. A title with no
+     * usable words left ("🍺") falls back to the calendar id, which the model's
+     * usual collision handling keeps unique.
      */
-    private function tag(string $name, string $fallback): string
+    private function tag(string $name, string $fallback, ?string $kennel): string
     {
         $head = preg_split('/[:\x{2013}\x{2014}|]/u', $name)[0] ?? $name;
         $tag = mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $head) ?? '', 'UTF-8');
+        $tag = $tag === '' ? $fallback : $tag;
+        $prefix = mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $kennel) ?? '', 'UTF-8');
 
-        return $tag === '' ? $fallback : mb_substr($tag, 0, 24);
+        if ($prefix === '') {
+            return $tag;
+        }
+
+        return $prefix.str_replace($prefix, '', $tag);
     }
 
     private function moment(mixed $value): ?Carbon

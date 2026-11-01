@@ -44,17 +44,22 @@
                     </p>
                 @endif
                 <p class="py-3 font-semibold text-gray-800 dark:text-gray-200">
-                    COST: ${{ $event->base_price_in_dollars }}/REGO (Pay below ⬇️⬇️⬇️ after accepting our waiver)
+                    COST: ${{ $event->base_price_in_dollars }}/REGO
+                    @if ($now->lt($endsAt))
+                        (Pay below ⬇️⬇️⬇️ after accepting our waiver)
+                    @endif
                 </p>
             </div>
         </x-slot>
     </x-rego-section>
-    <x-rego-section>
-        <x-slot name="title">LOCATION</x-slot>
-        <x-slot name="content">
-            <livewire:location-map :event-id="$event->id" />
-        </x-slot>
-    </x-rego-section>
+    @if ($event->hasCoordinates())
+        <x-rego-section>
+            <x-slot name="title">LOCATION</x-slot>
+            <x-slot name="content">
+                <livewire:location-map :event-id="$event->id" />
+            </x-slot>
+        </x-rego-section>
+    @endif
     @if(!empty(data_get($event->properties, 'fields')))
     <x-rego-section>
         <x-slot name="title">EVENT INFO</x-slot>
@@ -63,22 +68,31 @@
         </x-slot>
     </x-rego-section>
     @endif
-    <x-rego-section>
-        <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
-        <x-slot name="content">
-            <livewire:paypal :event-id="$event->id" />
-        </x-slot>
-    </x-rego-section>
+    @if ($now->lt($endsAt))
+        <x-rego-section>
+            <x-slot name="title">ACCEPT WAIVER/PAY UP</x-slot>
+            <x-slot name="content">
+                <livewire:paypal :event-id="$event->id" />
+            </x-slot>
+        </x-rego-section>
+    @endif
     <x-rego-section>
         <x-slot name="title">OH LAWD THEY COMIN'</x-slot>
         <x-slot name="content">
             <livewire:regos :event-id="$event->id" />
         </x-slot>
     </x-rego-section>
-    <x-rego-section>
-        <x-slot name="title">TRACKS</x-slot>
-        <x-slot name="content">
-            <livewire:gpx-track :event-id="$event->id" />
-        </x-slot>
-    </x-rego-section>
+    @if ($now->gte($startsAt) || auth()->user()?->is_admin)
+        <x-rego-section>
+            <x-slot name="title">TRACKS</x-slot>
+            <x-slot name="content">
+                <livewire:gpx-track :event-id="$event->id" />
+                @if ($event->tracks()->exists())
+                    <div class="mt-6">
+                        <livewire:tracks-map :event-id="$event->id" />
+                    </div>
+                @endif
+            </x-slot>
+        </x-rego-section>
+    @endif
 </x-app-layout>

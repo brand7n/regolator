@@ -15,7 +15,7 @@
                             &middot; {{ number_format($track->size / 1024) }} KB
                         </p>
                     </div>
-                    @if($canUpload && ($track->user_id === auth()->id() || auth()->user()?->is_admin || $track->event->created_by === auth()->id()))
+                    @if($canDelete($track))
                         <button
                             wire:click="delete({{ $track->id }})"
                             wire:confirm="Delete {{ $track->name }}?"
@@ -43,7 +43,7 @@
         </form>
     @else
         <p class="py-3 text-sm font-normal text-gray-600 dark:text-gray-400">
-            Only paid registrants for this event can upload a track.
+            Anyone can upload a track once the hash has started.
         </p>
     @endif
 </div>

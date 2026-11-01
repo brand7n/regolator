@@ -20,10 +20,14 @@ class KennelResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
+                TextInput::make('abbreviation')
+                    ->label('Abbreviation')
                     ->required()
-                    ->maxLength(255)
+                    ->maxLength(32)
                     ->unique(ignoreRecord: true),
+                TextInput::make('full_name')
+                    ->label('Full name')
+                    ->maxLength(255),
             ]);
     }
 
@@ -31,9 +35,15 @@ class KennelResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('abbreviation')
+                    ->label('Abbreviation')
+                    ->badge()
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label('Full name')
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('events_count')
                     ->label('Events')
                     ->counts('events')
@@ -53,7 +63,7 @@ class KennelResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('name');
+            ->defaultSort('abbreviation');
     }
 
     public static function getPages(): array

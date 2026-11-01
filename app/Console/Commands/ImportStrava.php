@@ -271,10 +271,14 @@ class ImportStrava extends Command
             $score += 20;
         }
 
-        $kennel = mb_strtolower((string) $event->kennel?->name);
+        $kennel = $event->kennel;
 
-        if ($kennel !== '' && str_contains($name, $kennel)) {
-            $score += 20;
+        foreach (array_filter([$kennel?->abbreviation, $kennel?->full_name]) as $term) {
+            if (str_contains($name, mb_strtolower($term))) {
+                $score += 20;
+
+                break;
+            }
         }
 
         [$strictStart, $strictEnd] = $this->window($event);

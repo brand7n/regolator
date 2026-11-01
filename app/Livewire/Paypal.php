@@ -181,6 +181,8 @@ class Paypal extends Component
         /** @var User $user */
         $user = Auth::user();
 
+        abort_if($this->event->ends_at->isPast(), 403);
+
         if ($this->event->isFull()) {
             $this->regos_full_message = $this->getMaxRegosReachedMessage();
             $this->dispatch('max-regos-reached');

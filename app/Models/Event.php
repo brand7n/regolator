@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,6 +28,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property array<array-key, mixed>|null $properties
  * @property int $created_by
  * @property string|null $google_event_id
+ * @property array<array-key, mixed>|null $google_payload
  * @property int $private
  * @property string|null $event_tag
  * @property int $base_price
@@ -78,10 +80,111 @@ class Event extends Model
 
     protected $casts = [
         'properties' => 'array',
+        'google_payload' => 'array',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'base_price' => 'integer',
     ];
+
+    /**
+     * The slug is the tag verbatim, so editing a tag renames the URL and the
+     * two can never drift. A collision is suffixed here rather than thrown by
+     * the unique index: the calendar import derives tags from titles, and a
+     * yearly "GOTENGAGED" is normal.
+     *
+     * A moved `starts_at` deliberately does not rename it: the calendar sync
+     * refreshes that column on every run, which would 404 the `/events/{slug}`
+     * links already sitting in people's inboxes.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (self $event): void {
+            if ($event->isDirty('event_tag') && $event->event_tag !== null) {
+                $event->event_tag = $event->uniqueTag($event->event_tag);
+            }
+
+            if ($event->slug === null || $event->isDirty('event_tag')) {
+                $event->slug = $event->event_tag ?? $event->taglessSlug();
+            }
+        });
+    }
+
+    /** Events are addressed by their tag, which is also the slug. */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * Slugs are the tag, so links mailed before the two were unified are
+     * lowercase and dash-separated. Match those too, then fall back to the id
+     * for the `/events/{id}` links sent before that.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field !== null && $field !== $this->getRouteKeyName()) {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        $value = (string) $value;
+        $needle = mb_strtolower(str_replace(' ', '-', $value));
+
+        return $this->whereRaw("lower(replace(slug, ' ', '-')) = ?", [$needle])->first()
+            ?? (ctype_digit($value) ? $this->find((int) $value) : null);
+    }
+
+    /**
+     * The tag is the slug, so it has to be unique: a collision gets the start
+     * date and then a counter: `GOTENGAGED-20260214-2`.
+     */
+    private function uniqueTag(string $tag): string
+    {
+        if (! $this->taken('event_tag', $tag)) {
+            return $tag;
+        }
+
+        $dated = $this->suffixTag($tag, $this->starts_at->format('Ymd'));
+
+        if (! $this->taken('event_tag', $dated)) {
+            return $dated;
+        }
+
+        for ($n = 2; ; $n++) {
+            $candidate = $this->suffixTag($dated, (string) $n);
+
+            if (! $this->taken('event_tag', $candidate)) {
+                return $candidate;
+            }
+        }
+    }
+
+    /** Keeps the tag under the length PayPal allows for a soft descriptor. */
+    private function suffixTag(string $tag, string $suffix): string
+    {
+        $suffix = '-'.$suffix;
+
+        return mb_substr($tag, 0, max(1, self::TAG_MAX_LENGTH - mb_strlen($suffix))).$suffix;
+    }
+
+    /** Legacy rows without a tag still need a unique route key. */
+    private function taglessSlug(): string
+    {
+        $base = Str::slug((string) $this->name) ?: 'event';
+
+        for ($slug = $base, $n = 2; $this->taken('slug', $slug); $n++) {
+            $slug = "{$base}-{$n}";
+        }
+
+        return $slug;
+    }
+
+    private function taken(string $column, string $value): bool
+    {
+        return self::query()
+            ->where($column, $value)
+            ->when($this->exists, fn (Builder $query) => $query->whereKeyNot($this->getKey()))
+            ->exists();
+    }
 
     // Accessor: get base_price in dollars
     public function getBasePriceInDollarsAttribute(): string
@@ -95,6 +198,9 @@ class Event extends Model
         $this->base_price = (int) round($value * 100);
     }
 
+    /** The tag is sent as the PayPal soft descriptor, which allows this much. */
+    private const TAG_MAX_LENGTH = 22;
+
     /** Assigning a freeform `kennel` string resolves it to a canonical kennel. */
     public function setAttribute($key, $value)
     {
@@ -102,7 +208,29 @@ class Event extends Model
             return parent::setAttribute('kennel_id', Kennel::resolve(is_string($value) ? $value : null)?->id);
         }
 
+        if ($key === 'event_tag') {
+            return parent::setAttribute($key, self::normalizeTag($value));
+        }
+
         return parent::setAttribute($key, $value);
+    }
+
+    /**
+     * Admins type tags freeform and the calendar import derives its own, so
+     * both funnel through here: PayPal takes the tag as its soft descriptor
+     * and silently fails order creation on anything outside `[A-Za-z0-9 .-]`
+     * or longer than 22 characters.
+     */
+    private static function normalizeTag(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $tag = preg_replace('/[^A-Za-z0-9 .-]/', '', (string) $value) ?? '';
+        $tag = rtrim(mb_substr(trim(preg_replace('/\s+/', ' ', $tag) ?? ''), 0, self::TAG_MAX_LENGTH));
+
+        return $tag === '' ? null : $tag;
     }
 
     /** @return BelongsTo<Kennel, $this> */
@@ -147,6 +275,20 @@ class Event extends Model
         $query->where('ends_at', '<', now());
     }
 
+    /**
+     * Past events that have uploaded tracks, narrowed by kennel and date range.
+     *
+     * @param  Builder<Event>  $query
+     */
+    public function scopeWithTrails(Builder $query, ?int $kennelId = null, ?string $from = null, ?string $to = null): void
+    {
+        $query->past()
+            ->has('tracks')
+            ->when($kennelId, fn (Builder $query) => $query->where('kennel_id', $kennelId))
+            ->when($from, fn (Builder $query) => $query->where('starts_at', '>=', Carbon::parse($from)->startOfDay()))
+            ->when($to, fn (Builder $query) => $query->where('starts_at', '<=', Carbon::parse($to)->endOfDay()));
+    }
+
     public function getOrder(User $user): ?Order
     {
         return Order::where('user_id', $user->id)
@@ -173,6 +315,24 @@ class Event extends Model
             ->where('status', OrderStatus::PaymentVerified)
             ->distinct('user_id')
             ->count('user_id');
+    }
+
+    /**
+     * Whether `lat`/`lon` describe a real point (in range, and not the
+     * [0, 0] "null island" that parks the map in the Atlantic).
+     */
+    public function hasCoordinates(): bool
+    {
+        if (! is_numeric($this->lat) || ! is_numeric($this->lon)) {
+            return false;
+        }
+
+        $lat = (float) $this->lat;
+        $lon = (float) $this->lon;
+
+        return abs($lat) <= 90
+            && abs($lon) <= 180
+            && ! ($lat === 0.0 && $lon === 0.0);
     }
 
     /**

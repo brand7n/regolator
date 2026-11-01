@@ -24,6 +24,9 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Throwaway key: tests still need crypt (sessions, magic-link tokens).
+             Committed on purpose so the suite runs with no .env present. -->
+        <env name="APP_KEY" value="base64:AuTV0YgXzNzp4zu8cjtU/qhjkSati6h3mLx5wq97du0="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>

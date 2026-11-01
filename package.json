@@ -24,6 +24,7 @@
         "fsevents@2.3.3": true
     },
     "overrides": {
+        "postcss-selector-parser": "^6.1.5",
         "sucrase": {
             "glob": "^13.0.6"
         }

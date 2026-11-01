@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Storage;
 use SimpleXMLElement;
 
@@ -100,6 +102,61 @@ class EventTrack extends Model
         }
 
         return self::simplify($points, self::DETAIL_TOLERANCE);
+    }
+
+    /**
+     * Shape a set of events' tracks into what the Leaflet map consumes.
+     *
+     * Many-event maps ship the coarse tier only so a few hundred tracks fit on
+     * one page; a single event ships both and the blade swaps tiers on zoom.
+     *
+     * @param  Collection<int, Event>  $events
+     * @return array<int, array<string, mixed>>
+     */
+    public static function mapPayload(Collection $events): array
+    {
+        $overview = $events->count() > 10;
+        $tracks = [];
+
+        foreach ($events as $event) {
+            foreach ($event->tracks as $track) {
+                $points = $track->points ?? [];
+
+                if (count($points) < 2) {
+                    continue;
+                }
+
+                $tracks[] = [
+                    'id' => $track->id,
+                    'event' => $event->event_tag ?: $event->name,
+                    'name' => ($event->event_tag ?: $event->name).' — '.$track->user->name,
+                    'points' => $track->points_overview ?? self::overview($points),
+                    'detail' => $overview ? null : $points,
+                    'date' => $event->starts_at->setTimezone('America/New_York')->format('M j, Y'),
+                    'eventUrl' => route('events.show', $event),
+                    'url' => Storage::url($track->path),
+                ];
+            }
+        }
+
+        return $tracks;
+    }
+
+    /**
+     * Detailed (5 m) polylines for the given tracks, limited to events in scope.
+     *
+     * @param  SupportCollection<int, int>  $eventIds
+     * @param  array<int, int|string>  $ids
+     * @return array<int, array<int, array{0: float, 1: float}>>
+     */
+    public static function detailPayload(SupportCollection $eventIds, array $ids): array
+    {
+        return self::query()
+            ->whereIn('event_id', $eventIds)
+            ->whereIn('id', array_slice(array_map('intval', $ids), 0, 100))
+            ->get(['id', 'points'])
+            ->mapWithKeys(fn (self $track) => [$track->id => $track->points ?? []])
+            ->all();
     }
 
     /**

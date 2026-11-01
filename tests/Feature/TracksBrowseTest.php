@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\LocationMap;
+use App\Livewire\TracksMap;
 use App\Models\Event;
 use App\Models\EventTrack;
 use App\Models\User;
@@ -27,6 +28,8 @@ function pastEvent(string $name, string $kennel, string $when = 'subWeek'): Even
         'kennel' => $kennel,
         'description' => 'Test',
         'location' => 'Test',
+        'lat' => 40.79,
+        'lon' => -77.85,
         'starts_at' => now()->{$when}(),
         'ends_at' => now()->{$when}()->addDay(),
         'base_price' => 0,
@@ -144,7 +147,7 @@ test('the date range filter narrows the map and the kennel list', function () {
         ->assertSee('Autumn Trail')
         ->assertDontSee('Spring Trail');
 
-    $component = Livewire::actingAs($this->user)->test(LocationMap::class, [
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class, [
         'from' => '2025-08-01',
         'to' => '2025-09-30',
     ]);
@@ -159,10 +162,9 @@ test('the trails page maps every track when no range is given', function () {
     track($spring, $this->user, 'spring.gpx');
     track($autumn, $this->user, 'autumn.gpx');
 
-    $component = Livewire::actingAs($this->user)->test(LocationMap::class);
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class);
 
-    expect($component->html())->toContain('spring.gpx')->toContain('autumn.gpx')
-        ->and($component->get('markers'))->toBe([]);
+    expect($component->html())->toContain('spring.gpx')->toContain('autumn.gpx');
 });
 
 test('a kennel page shows only that kennels past events and maps their tracks', function () {
@@ -186,7 +188,7 @@ test('the map component builds a single polyline list for a kennel', function ()
     track($first, $this->user, 'first.gpx');
     track($second, $this->user, 'second.gpx');
 
-    $component = Livewire::actingAs($this->user)->test(LocationMap::class, ['kennelId' => $first->kennel_id]);
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class, ['kennelId' => $first->kennel_id]);
 
     $html = $component->html();
 
@@ -198,7 +200,7 @@ test('a track popup carries the event name, date and event link', function () {
     $event = pastEvent('Popup Trail', 'NVHHH');
     track($event, $this->user, 'popup.gpx');
 
-    $component = Livewire::actingAs($this->user)->test(LocationMap::class, ['kennelId' => $event->kennel_id]);
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class, ['kennelId' => $event->kennel_id]);
 
     $tracks = $component->viewData('tracks');
 
@@ -209,15 +211,33 @@ test('a track popup carries the event name, date and event link', function () {
         ->and($component->html())->toContain('bindPopup');
 });
 
-test('the map component still works for a single event', function () {
+test('a single events tracks map draws only that events trails', function () {
+    $event = pastEvent('Solo Trail', 'NVHHH');
+    track($event, $this->user);
+
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class, ['eventId' => $event->id]);
+
+    expect($component->html())->toContain('trail.gpx')->not->toContain('L.marker');
+});
+
+test('the location map pins the event and draws no trails', function () {
     $event = pastEvent('Solo Trail', 'NVHHH');
     track($event, $this->user);
 
     $component = Livewire::actingAs($this->user)->test(LocationMap::class, ['eventId' => $event->id]);
 
     expect($component->get('markers'))->toHaveCount(1)
-        ->and($component->html())->toContain('trail.gpx')
-        ->and($component->get('tracks'))->toBeNull();
+        ->and($component->html())->not->toContain('trail.gpx')
+        ->and($component->html())->not->toContain('L.polyline');
+});
+
+test('an event without coordinates drops no pin at [0, 0]', function () {
+    $event = pastEvent('Nowhere Trail', 'NVHHH');
+    $event->update(['lat' => null, 'lon' => null]);
+
+    $component = Livewire::actingAs($this->user)->test(LocationMap::class, ['eventId' => $event->id]);
+
+    expect($component->get('markers'))->toBeEmpty();
 });
 
 test('a single event map ships the coarse tier plus the detailed one', function () {
@@ -239,7 +259,7 @@ test('a single event map ships the coarse tier plus the detailed one', function 
     ]);
 
     $tracks = Livewire::actingAs($this->user)
-        ->test(LocationMap::class, ['eventId' => $event->id])
+        ->test(TracksMap::class, ['eventId' => $event->id])
         ->viewData('tracks');
 
     expect($tracks[0]['detail'])->toEqual($points)
@@ -252,13 +272,13 @@ test('a crowded overview map ships only the coarse tier', function () {
     }
 
     $tracks = Livewire::actingAs($this->user)
-        ->test(LocationMap::class)
+        ->test(TracksMap::class)
         ->viewData('tracks');
 
     expect($tracks)->toHaveCount(11)
         ->and($tracks[0]['detail'])->toBeNull()
         ->and($tracks[0]['id'])->not->toBeNull()
-        ->and(Livewire::actingAs($this->user)->test(LocationMap::class)->html())->toContain('$wire.detail(');
+        ->and(Livewire::actingAs($this->user)->test(TracksMap::class)->html())->toContain('$wire.detail(');
 });
 
 test('the detail action hands back the 5 m polyline for visible tracks only', function () {
@@ -285,13 +305,13 @@ test('the detail action hands back the 5 m polyline for visible tracks only', fu
         'points_overview' => [[10.0, 10.0], [10.1, 10.1]],
     ]);
 
-    $component = Livewire::actingAs($this->user)->test(LocationMap::class, ['kennelId' => $mine->kennel_id]);
+    $component = Livewire::actingAs($this->user)->test(TracksMap::class, ['kennelId' => $mine->kennel_id]);
 
     expect($component->instance()->detail([$track->id]))->toEqual([$track->id => $points])
         ->and($component->instance()->detail([$other->id]))->toEqual([$other->id => [[10.0, 10.0], [10.1, 10.1]]]);
 
     // A kennel filter keeps tracks from other events out of the response.
-    $scoped = Livewire::actingAs($this->user)->test(LocationMap::class, ['eventId' => $mine->id]);
+    $scoped = Livewire::actingAs($this->user)->test(TracksMap::class, ['eventId' => $mine->id]);
 
     expect($scoped->instance()->detail([$other->id]))->toBe([]);
 });
@@ -300,7 +320,7 @@ test('track points stay out of the livewire snapshot', function () {
     $event = pastEvent('Heavy Trail', 'NVHHH');
     track($event, $this->user);
 
-    $html = Livewire::actingAs($this->user)->test(LocationMap::class, ['kennelId' => $event->kennel_id])->html();
+    $html = Livewire::actingAs($this->user)->test(TracksMap::class, ['kennelId' => $event->kennel_id])->html();
 
     preg_match('/wire:snapshot="([^"]*)"/', $html, $snapshot);
 

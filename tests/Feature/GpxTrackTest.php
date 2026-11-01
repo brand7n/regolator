@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\GpxTrack;
+use App\Livewire\Paypal;
 use App\Models\Event;
 use App\Models\EventTrack;
 use App\Models\Order;
@@ -44,6 +45,8 @@ beforeEach(function () {
         'ends_at' => now()->subDays(6),
         'base_price' => 5000,
         'event_tag' => 'GPX_TEST',
+        'lat' => 41.178093,
+        'lon' => -77.549571,
         'private' => false,
         'created_by' => $this->host->id,
     ]);
@@ -82,7 +85,7 @@ test('a paid registrant can upload a gpx track', function () {
     Storage::disk('public')->assertExists($track->path);
 });
 
-test('an unpaid user cannot upload', function () {
+test('an unregistered user can upload once the event has started', function () {
     $stranger = User::create([
         'name' => 'Stranger',
         'email' => 'stranger@example.com',
@@ -92,9 +95,11 @@ test('an unpaid user cannot upload', function () {
     Livewire::actingAs($stranger)
         ->test(GpxTrack::class, ['eventId' => $this->event->id])
         ->set('gpx', gpxFile())
-        ->call('save');
+        ->call('save')
+        ->assertHasNoErrors();
 
-    expect(EventTrack::count())->toBe(0);
+    expect(EventTrack::count())->toBe(1)
+        ->and(EventTrack::sole()->user_id)->toBe($stranger->id);
 });
 
 test('re-uploading replaces the previous track and file', function () {
@@ -145,15 +150,75 @@ test('the uploader can delete their own track', function () {
     Storage::disk('public')->assertMissing($track->path);
 });
 
-test('non-paid users do not see the upload form', function () {
-    $stranger = User::create([
-        'name' => 'Stranger',
-        'email' => 'stranger@example.com',
+test('a paid registrant cannot delete someone elses track', function () {
+    Livewire::actingAs($this->hasher)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->set('gpx', gpxFile())
+        ->call('save');
+
+    $track = EventTrack::sole();
+
+    $runMate = User::create([
+        'name' => 'Run Mate',
+        'email' => 'runmate@example.com',
         'password' => 'secret',
     ]);
 
-    Livewire::actingAs($stranger)
+    Order::create([
+        'user_id' => $runMate->id,
+        'event_id' => $this->event->id,
+        'status' => OrderStatus::PaymentVerified,
+        'verified_at' => now(),
+    ]);
+
+    Livewire::actingAs($runMate)
         ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->assertDontSee('Delete')
+        ->call('delete', $track->id);
+
+    expect(EventTrack::count())->toBe(1);
+    Storage::disk('public')->assertExists($track->path);
+});
+
+test('the host can delete a track on their event', function () {
+    Livewire::actingAs($this->hasher)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->set('gpx', gpxFile())
+        ->call('save');
+
+    $track = EventTrack::sole();
+
+    Livewire::actingAs($this->host)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->call('delete', $track->id);
+
+    expect(EventTrack::count())->toBe(0);
+});
+
+test('an admin can delete a track they neither uploaded nor host', function () {
+    Livewire::actingAs($this->hasher)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->set('gpx', gpxFile())
+        ->call('save');
+
+    $track = EventTrack::sole();
+
+    $admin = User::create([
+        'name' => 'Admin',
+        'email' => 'admin-delete@example.com',
+        'password' => 'secret',
+        'is_admin' => true,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->call('delete', $track->id);
+
+    expect(EventTrack::count())->toBe(0);
+});
+
+test('guests do not see the upload form', function () {
+    Livewire::test(GpxTrack::class, ['eventId' => $this->event->id])
         ->assertDontSee('Upload track');
 
     Livewire::actingAs($this->hasher)
@@ -261,4 +326,61 @@ test('the resample command re-derives points from the stored gpx file', function
 
     expect($track->points)->toHaveCount(2)
         ->and($track->points_overview)->toBe($track->points);
+});
+
+test('a paid registrant cannot upload before the event starts', function () {
+    $this->event->update([
+        'starts_at' => now()->addDay(),
+        'ends_at' => now()->addDays(2),
+    ]);
+
+    Livewire::actingAs($this->hasher)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->assertDontSee('Upload track');
+
+    Livewire::actingAs($this->hasher)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->set('gpx', gpxFile())
+        ->call('save');
+
+    expect(EventTrack::count())->toBe(0);
+});
+
+test('an admin can upload before the event starts', function () {
+    $admin = User::create([
+        'name' => 'Admin',
+        'email' => 'admin@example.com',
+        'password' => 'secret',
+        'is_admin' => true,
+    ]);
+
+    $this->event->update([
+        'starts_at' => now()->addDay(),
+        'ends_at' => now()->addDays(2),
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(GpxTrack::class, ['eventId' => $this->event->id])
+        ->set('gpx', gpxFile())
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(EventTrack::count())->toBe(1);
+});
+
+test('the waiver cannot be accepted after the event ends', function () {
+    $this->event->update([
+        'starts_at' => now()->subDays(2),
+        'ends_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->hasher)
+        ->test(Paypal::class, ['eventId' => $this->event->id])
+        ->call('accept_terms')
+        ->assertForbidden();
+
+    expect(Order::where('event_id', $this->event->id)
+        ->where('user_id', $this->hasher->id)
+        ->where('status', OrderStatus::Accepted)
+        ->exists())->toBeFalse();
 });

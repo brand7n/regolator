@@ -30,16 +30,13 @@
             @endif
 
             <div x-data="{ status: '', error: '' }" class="mt-10 sm:mt-0">
-                <section>
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Passkeys</h2>
+                <x-action-section>
+                    <x-slot name="title">{{ __('Passkeys') }}</x-slot>
+                    <x-slot name="description">
+                        {{ __('Add a passkey to sign in using your device\'s biometric sensor or PIN.') }}
+                    </x-slot>
 
-                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Add a passkey to sign in using your device's biometric sensor or PIN.
-                        </p>
-                    </header>
-
-                    <div class="mt-4">
+                    <x-slot name="content">
                         <button
                             x-show="!window.Passkeys?.isSupported()"
                             class="px-4 py-2 text-sm bg-gray-500 text-white rounded-md dark:bg-gray-700"
@@ -63,9 +60,11 @@
 
                         <p x-show="status" x-text="status" class="mt-3 text-sm text-green-600 dark:text-green-400"></p>
                         <p x-show="error" x-text="error" class="mt-3 text-sm text-red-600 dark:text-red-400"></p>
-                    </div>
-                </section>
+                    </x-slot>
+                </x-action-section>
             </div>
+
+            <x-section-border />
 
             <div class="mt-10 sm:mt-0">
                 @livewire('profile.logout-other-browser-sessions-form')

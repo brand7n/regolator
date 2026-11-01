@@ -39,6 +39,15 @@ return [
         'timezone' => env('GOOGLE_CALENDAR_TIMEZONE', 'America/New_York'),
     ],
 
+    // Description -> structured trail facts (app:extract-event-details).
+    'llm' => [
+        'driver' => env('LLM_DRIVER', 'openai'),
+        'api_key' => env('LLM_API_KEY'),
+        'api_url' => env('LLM_API_URL'),
+        'model' => env('LLM_MODEL'),
+        'max_tokens' => env('LLM_MAX_TOKENS'),
+    ],
+
     'strava' => [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),

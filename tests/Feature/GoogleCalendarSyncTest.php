@@ -56,8 +56,10 @@ test('imports past and upcoming events from the calendar', function () {
         ->and($past->location)->toBe('Somewhere, PA')
         ->and($past->description)->toBe('The original.')
         ->and($past->created_by)->toBe($this->admin->id)
-        ->and($past->kennel?->name)->toBe('NVHHH')
-        ->and($past->ends_at->lt(now()))->toBeTrue();
+        ->and($past->kennel?->abbreviation)->toBe('NVHHH')
+        ->and($past->ends_at->lt(now()))->toBeTrue()
+        ->and($past->google_payload['id'])->toBe('past-1')
+        ->and($past->google_payload['start']['dateTime'])->toBe('2019-05-04T18:00:00-04:00');
 
     expect(Event::where('google_event_id', 'future-1')->exists())->toBeTrue()
         ->and(Event::where('google_event_id', 'cancelled-1')->exists())->toBeFalse();
@@ -222,8 +224,27 @@ test('tags are derived from the event title', function () {
     $this->artisan('app:sync-google-calendar')->assertSuccessful();
 
     expect(Event::where('google_event_id', 'tag-1')->value('event_tag'))->toBe('NVHHH1317')
-        ->and(Event::where('google_event_id', 'tag-2')->value('event_tag'))->toBe('REDDRESSRUN')
-        ->and(Event::where('google_event_id', 'tag-3')->value('event_tag'))->toBe('tag-3');
+        ->and(Event::where('google_event_id', 'tag-2')->value('event_tag'))->toBe('NVHHHREDDRESSRUN')
+        ->and(Event::where('google_event_id', 'tag-3')->value('event_tag'))->toBe('NVHHHtag-3');
+});
+
+test('a kennel abbreviation outside the title head is moved to the front', function () {
+    Http::fake([
+        'www.googleapis.com/*' => Http::response([
+            'items' => [
+                [
+                    'id' => 'mid-1',
+                    'summary' => 'Red Dress Run NVHHH 1318',
+                    'start' => ['dateTime' => '2026-11-14T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-14T21:00:00-05:00'],
+                ],
+            ],
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect(Event::where('google_event_id', 'mid-1')->value('event_tag'))->toBe('NVHHHREDDRESSRUN1318');
 });
 
 test('re-syncing replaces a calendar-id tag but keeps a manual one', function () {
@@ -278,4 +299,34 @@ test('re-syncing replaces a calendar-id tag but keeps a manual one', function ()
 
     expect($legacy->refresh()->event_tag)->toBe('NVHHH1317')
         ->and($manual->refresh()->event_tag)->toBe('CUSTOM');
+});
+
+test('two calendar events with the same title get distinct tags', function () {
+    Http::fake([
+        'www.googleapis.com/*' => Http::response([
+            'items' => [
+                [
+                    'id' => 'dupe-1',
+                    'summary' => 'GOTENGAGED',
+                    'start' => ['dateTime' => '2026-02-14T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-02-14T21:00:00-05:00'],
+                ],
+                [
+                    'id' => 'dupe-2',
+                    'summary' => 'GOTENGAGED',
+                    'start' => ['dateTime' => '2027-02-14T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2027-02-14T21:00:00-05:00'],
+                ],
+            ],
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    $first = Event::where('google_event_id', 'dupe-1')->firstOrFail();
+    $second = Event::where('google_event_id', 'dupe-2')->firstOrFail();
+
+    expect($first->event_tag)->toBe('NVHHHGOTENGAGED')
+        ->and($second->event_tag)->toBe('NVHHHGOTENGAG-20270214')
+        ->and($second->slug)->toBe($second->event_tag);
 });
