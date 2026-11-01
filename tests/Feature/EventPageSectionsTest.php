@@ -28,7 +28,7 @@ test('the waiver section disappears once the event has ended', function () {
     $event = ($this->makeEvent)(now()->subDays(2), now()->subDay());
 
     $this->actingAs($this->user)
-        ->get("/events/{$event->slug}")
+        ->get("/events/{$event->event_tag}")
         ->assertOk()
         ->assertDontSee('ACCEPT WAIVER/PAY UP')
         ->assertSee('OH LAWD THEY COMIN');
@@ -38,7 +38,7 @@ test('the waiver section is still offered until the event ends', function () {
     $event = ($this->makeEvent)(now()->subHour(), now()->addHour());
 
     $this->actingAs($this->user)
-        ->get("/events/{$event->slug}")
+        ->get("/events/{$event->event_tag}")
         ->assertOk()
         ->assertSee('ACCEPT WAIVER/PAY UP');
 });
@@ -47,7 +47,7 @@ test('tracks stay hidden until the event starts', function () {
     $event = ($this->makeEvent)(now()->addDay(), now()->addDays(2));
 
     $this->actingAs($this->user)
-        ->get("/events/{$event->slug}")
+        ->get("/events/{$event->event_tag}")
         ->assertOk()
         ->assertDontSee('TRACKS');
 });
@@ -56,7 +56,7 @@ test('tracks appear once the event has started and after it ends', function () {
     $running = ($this->makeEvent)(now()->subHour(), now()->addHour());
 
     $this->actingAs($this->user)
-        ->get("/events/{$running->slug}")
+        ->get("/events/{$running->event_tag}")
         ->assertOk()
         ->assertSee('TRACKS');
 
@@ -73,7 +73,7 @@ test('tracks appear once the event has started and after it ends', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->get("/events/{$past->slug}")
+        ->get("/events/{$past->event_tag}")
         ->assertOk()
         ->assertSee('TRACKS');
 });
@@ -89,7 +89,7 @@ test('an admin still sees the tracks section before the event starts', function 
     $event = ($this->makeEvent)(now()->addDay(), now()->addDays(2));
 
     $this->actingAs($admin)
-        ->get("/events/{$event->slug}")
+        ->get("/events/{$event->event_tag}")
         ->assertOk()
         ->assertSee('TRACKS');
 });
@@ -98,7 +98,7 @@ test('the location map only appears when the event has real coordinates', functi
     $bare = ($this->makeEvent)(now()->subHour(), now()->addHour());
 
     $this->actingAs($this->user)
-        ->get("/events/{$bare->slug}")
+        ->get("/events/{$bare->event_tag}")
         ->assertOk()
         ->assertDontSee('id="map"', false);
 
@@ -106,7 +106,7 @@ test('the location map only appears when the event has real coordinates', functi
     $placed->update(['lat' => 41.178093, 'lon' => -77.549571]);
 
     $this->actingAs($this->user)
-        ->get("/events/{$placed->slug}")
+        ->get("/events/{$placed->event_tag}")
         ->assertOk()
         ->assertSee('id="map"', false);
 });

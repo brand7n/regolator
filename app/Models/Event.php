@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -87,14 +86,10 @@ class Event extends Model
     ];
 
     /**
-     * The slug is the tag verbatim, so editing a tag renames the URL and the
-     * two can never drift. A collision is suffixed here rather than thrown by
-     * the unique index: the calendar import derives tags from titles, and a
-     * yearly "GOTENGAGED" is normal.
-     *
-     * A moved `starts_at` deliberately does not rename it: the calendar sync
-     * refreshes that column on every run, which would 404 the `/events/{slug}`
-     * links already sitting in people's inboxes.
+     * A collision is suffixed here rather than thrown by the unique index: the
+     * calendar import derives tags from titles, and a yearly "GOTENGAGED" is
+     * normal. A moved `starts_at` deliberately does not re-suffix it, since the
+     * calendar sync refreshes that column on every run.
      */
     protected static function booted(): void
     {
@@ -102,23 +97,24 @@ class Event extends Model
             if ($event->isDirty('event_tag') && $event->event_tag !== null) {
                 $event->event_tag = $event->uniqueTag($event->event_tag);
             }
-
-            if ($event->slug === null || $event->isDirty('event_tag')) {
-                $event->slug = $event->event_tag ?? $event->taglessSlug();
-            }
         });
     }
 
-    /** Events are addressed by their tag, which is also the slug. */
+    /** Events are addressed by their tag. */
     public function getRouteKeyName(): string
     {
-        return 'slug';
+        return 'event_tag';
+    }
+
+    /** Rows with no tag (legacy imports) are still addressable by id. */
+    public function getRouteKey(): mixed
+    {
+        return $this->event_tag ?? $this->getKey();
     }
 
     /**
-     * Slugs are the tag, so links mailed before the two were unified are
-     * lowercase and dash-separated. Match those too, then fall back to the id
-     * for the `/events/{id}` links sent before that.
+     * Tags were lowercased and dash-separated in older mail, so match those
+     * too, then fall back to the id for the `/events/{id}` links sent before.
      */
     public function resolveRouteBinding($value, $field = null)
     {
@@ -129,13 +125,13 @@ class Event extends Model
         $value = (string) $value;
         $needle = mb_strtolower(str_replace(' ', '-', $value));
 
-        return $this->whereRaw("lower(replace(slug, ' ', '-')) = ?", [$needle])->first()
+        return $this->whereRaw("lower(replace(event_tag, ' ', '-')) = ?", [$needle])->first()
             ?? (ctype_digit($value) ? $this->find((int) $value) : null);
     }
 
     /**
-     * The tag is the slug, so it has to be unique: a collision gets the start
-     * date and then a counter: `GOTENGAGED-20260214-2`.
+     * The tag has to be unique: a collision gets the start date and then a
+     * counter: `GOTENGAGED-20260214-2`.
      */
     private function uniqueTag(string $tag): string
     {
@@ -164,18 +160,6 @@ class Event extends Model
         $suffix = '-'.$suffix;
 
         return mb_substr($tag, 0, max(1, self::TAG_MAX_LENGTH - mb_strlen($suffix))).$suffix;
-    }
-
-    /** Legacy rows without a tag still need a unique route key. */
-    private function taglessSlug(): string
-    {
-        $base = Str::slug((string) $this->name) ?: 'event';
-
-        for ($slug = $base, $n = 2; $this->taken('slug', $slug); $n++) {
-            $slug = "{$base}-{$n}";
-        }
-
-        return $slug;
     }
 
     private function taken(string $column, string $value): bool

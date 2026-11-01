@@ -327,6 +327,5 @@ test('two calendar events with the same title get distinct tags', function () {
     $second = Event::where('google_event_id', 'dupe-2')->firstOrFail();
 
     expect($first->event_tag)->toBe('NVHHHGOTENGAGED')
-        ->and($second->event_tag)->toBe('NVHHHGOTENGAG-20270214')
-        ->and($second->slug)->toBe($second->event_tag);
+        ->and($second->event_tag)->toBe('NVHHHGOTENGAG-20270214');
 });

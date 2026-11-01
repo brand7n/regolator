@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 class ExtractEventDetails extends Command
 {
     protected $signature = 'app:extract-event-details
-        {--event= : Only this event (id or slug)}
+        {--event= : Only this event (id or tag)}
         {--limit=0 : Stop after this many events (0 = no limit)}
         {--force : Re-extract events that already have trail details}';
 
@@ -21,7 +21,7 @@ class ExtractEventDetails extends Command
         $query = Event::query()->whereNotNull('description')->where('description', '!=', '');
 
         if ($event = $this->option('event')) {
-            $query->where(fn ($q) => $q->where('id', is_numeric($event) ? (int) $event : 0)->orWhere('slug', $event));
+            $query->where(fn ($q) => $q->where('id', is_numeric($event) ? (int) $event : 0)->orWhere('event_tag', $event));
         }
 
         if (! $this->option('force')) {

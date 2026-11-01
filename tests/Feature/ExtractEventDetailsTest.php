@@ -125,7 +125,7 @@ test('the event option scopes the run', function () {
 
     fakeExtractor(details(['hares' => ['Scoped']]));
 
-    $this->artisan('app:extract-event-details', ['--event' => $wanted->slug])->assertSuccessful();
+    $this->artisan('app:extract-event-details', ['--event' => $wanted->event_tag])->assertSuccessful();
 
     expect($wanted->fresh()->properties['trail']['hares'])->toBe(['Scoped'])
         ->and($other->fresh()->properties)->toBeNull();

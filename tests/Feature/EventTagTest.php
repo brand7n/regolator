@@ -23,15 +23,10 @@ beforeEach(function () {
     ]);
 });
 
-test('the slug is the tag verbatim', function () {
+test('the event url is its tag', function () {
     $event = ($this->makeEvent)('NVHHH1900');
 
-    expect($event->slug)->toBe('NVHHH1900')
-        ->and(route('events.show', $event))->toEndWith('/events/NVHHH1900');
-});
-
-test('the event page resolves by slug', function () {
-    $event = ($this->makeEvent)('NVHHH1900');
+    expect(route('events.show', $event))->toEndWith('/events/NVHHH1900');
 
     $this->actingAs($this->user)
         ->get('/events/NVHHH1900')
@@ -39,12 +34,23 @@ test('the event page resolves by slug', function () {
         ->assertSee($event->name);
 });
 
-test('links mailed under the old lowercased slug still resolve', function () {
-    $event = ($this->makeEvent)('GOTENGAGED');
-    $event->forceFill(['slug' => 'holidaze'])->saveQuietly();
+test('tags are matched case and space insensitively', function () {
+    $event = ($this->makeEvent)('GOT ENGAGED');
 
     $this->actingAs($this->user)
-        ->get('/events/holidaze')
+        ->get('/events/got-engaged')
+        ->assertOk()
+        ->assertSee($event->name);
+});
+
+test('an event without a tag is still addressable by id', function () {
+    $event = ($this->makeEvent)('NVHHH1900');
+    $event->forceFill(['event_tag' => null])->save();
+
+    expect(route('events.show', $event))->toEndWith('/events/'.$event->id);
+
+    $this->actingAs($this->user)
+        ->get('/events/'.$event->id)
         ->assertOk()
         ->assertSee($event->name);
 });
@@ -58,9 +64,7 @@ test('a colliding tag is suffixed with the start date and then a counter', funct
     expect($first->event_tag)->toBe('GOTENGAGED')
         ->and($sameDay->event_tag)->toBe('GOTENGAGED-20260214')
         ->and($alsoSameDay->event_tag)->toBe('GOTENGAGED-20260214-2')
-        ->and($otherDay->event_tag)->toBe('GOTENGAGED-20130920')
-        ->and($sameDay->slug)->toBe($sameDay->event_tag)
-        ->and($alsoSameDay->slug)->toBe($alsoSameDay->event_tag);
+        ->and($otherDay->event_tag)->toBe('GOTENGAGED-20130920');
 });
 
 test('a suffixed tag stays inside the soft descriptor limit', function () {
@@ -72,27 +76,24 @@ test('a suffixed tag stays inside the soft descriptor limit', function () {
         ->and($second->event_tag)->not->toBe($first->event_tag);
 });
 
-test('renaming the tag re-derives the slug', function () {
+test('renaming the tag renames the url', function () {
     $event = ($this->makeEvent)('OLDTRACK');
     $event->update(['event_tag' => 'NEWTRACK']);
 
-    expect($event->slug)->toBe('NEWTRACK');
+    expect(route('events.show', $event))->toEndWith('/events/NEWTRACK');
+
+    $this->actingAs($this->user)
+        ->get('/events/OLDTRACK')
+        ->assertNotFound();
 });
 
-test('an event with no tag still gets a slug from its name', function () {
-    $event = ($this->makeEvent)('NVHHH1900');
-    $event->forceFill(['event_tag' => null, 'name' => 'Fall Back Name'])->save();
-
-    expect($event->slug)->toBe('fall-back-name');
-});
-
-test('a resync that moves the start date keeps the slug', function () {
+test('a resync that moves the start date keeps the tag', function () {
     $event = ($this->makeEvent)('GOTENGAGED');
     ($this->makeEvent)('GOTENGAGED');
 
     $event->update(['starts_at' => '2026-03-01 10:00:00']);
 
-    expect($event->slug)->toBe('GOTENGAGED');
+    expect($event->fresh()->event_tag)->toBe('GOTENGAGED');
 });
 
 test('tags are reduced to what paypal accepts as a soft descriptor', function () {
@@ -102,8 +103,7 @@ test('tags are reduced to what paypal accepts as a soft descriptor', function ()
 
     expect($under->event_tag)->toBe('SPRINGFLING')
         ->and($long->event_tag)->toBe(str_repeat('X', 22))
-        ->and($junk->event_tag)->toBeNull()
-        ->and($junk->slug)->toBe('test-event');
+        ->and($junk->event_tag)->toBeNull();
 });
 
 test('legacy id urls still resolve', function () {

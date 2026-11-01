@@ -204,7 +204,7 @@ zoom-in detail comes from `GET /embed/trails/detail` via `fetch()`, not a Livewi
 
 ## 6d. Data flow: event details from the description
 
-`app:extract-event-details [--event=id|slug] [--limit=] [--force]`
+`app:extract-event-details [--event=id|tag] [--limit=] [--force]`
 (`app/Console/Commands/ExtractEventDetails.php`) runs an LLM over `events.description` and stores
 the result under `properties.trail` — the same schema-less JSON column as registration fields, so
 no migration and no clash with `properties.fields`.
