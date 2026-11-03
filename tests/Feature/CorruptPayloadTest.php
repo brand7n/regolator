@@ -5,7 +5,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Livewire\Features\SupportReleaseTokens\ReleaseToken;
 use Livewire\Mechanisms\HandleComponents\CorruptComponentPayloadException;
 
-test('a tampered livewire payload reloads instead of erroring', function () {
+test('a tampered livewire payload gets a bare 419 instead of a 500', function () {
     $snapshot = json_encode([
         'data' => [],
         'memo' => [
@@ -21,7 +21,9 @@ test('a tampered livewire payload reloads instead of erroring', function () {
         ->postJson('/livewire/update', [
             'components' => [['snapshot' => $snapshot, 'updates' => (object) [], 'calls' => []]],
         ])
-        ->assertRedirect('/canihazemail');
+        // Livewire's own render() answers production traffic with an empty 419,
+        // which its JS turns into "This page has expired. Refresh?".
+        ->assertStatus(419);
 });
 
 it('does not report the corrupt snapshot as an error', function () {

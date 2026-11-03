@@ -22,9 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Scanners POST junk snapshots to /livewire/update, and a real user only
-        // hits this with a page left open across a deploy. Reload instead of
-        // showing the "corrupt data" modal, and keep it out of error monitoring.
-        $exceptions->render(fn (CorruptComponentPayloadException $exception) => redirect()->back());
+        // Scanners POST junk snapshots to /livewire/update. Livewire answers those with
+        // a bare 419 (the client then prompts a page refresh), so only keep them out
+        // of error monitoring.
         $exceptions->dontReport(CorruptComponentPayloadException::class);
     })->create();
