@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
+use Livewire\Mechanisms\HandleComponents\CorruptComponentPayloadException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,5 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Scanners POST junk snapshots to /livewire/update, and a real user only
+        // hits this with a page left open across a deploy. Reload instead of
+        // showing the "corrupt data" modal, and keep it out of error monitoring.
+        $exceptions->render(fn (CorruptComponentPayloadException $exception) => redirect()->back());
+        $exceptions->dontReport(CorruptComponentPayloadException::class);
     })->create();
