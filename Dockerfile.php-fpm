@@ -1,4 +1,4 @@
-FROM php:8.5-fpm
+FROM php:8.5.12-fpm
 
 # Add only what Laravel actually needs beyond the base image:
 # - intl (needs libicu-dev)
@@ -12,7 +12,7 @@ RUN apt-get update \
     && docker-php-ext-install intl bcmath zip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN echo "expose_php = Off" > /usr/local/etc/php/conf.d/security.ini
+RUN printf 'expose_php = Off\nsession.upload_progress.enabled = Off\n' > /usr/local/etc/php/conf.d/security.ini
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
