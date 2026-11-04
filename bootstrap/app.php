@@ -5,6 +5,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
+use Livewire\Exceptions\MethodNotFoundException;
+use Livewire\Exceptions\NonPublicComponentMethodCall;
+use Livewire\Exceptions\PropertyNotFoundException;
+use Livewire\Exceptions\PublicPropertyNotFoundException;
+use Livewire\Features\SupportFileUploads\MissingFileUploadsTraitException;
 use Livewire\Mechanisms\HandleComponents\CorruptComponentPayloadException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -22,8 +27,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Scanners POST junk snapshots to /livewire/update. Livewire answers those with
-        // a bare 419 (the client then prompts a page refresh), so only keep them out
-        // of error monitoring.
-        $exceptions->dontReport(CorruptComponentPayloadException::class);
+        // Scanners POST junk snapshots to /livewire/update, and a snapshot scraped off a
+        // public page is enough to replay arbitrary calls against it. None of these say
+        // anything about the app working, so keep them out of error monitoring. Note this
+        // also hides a mistyped wire:click in production; it is still loud in debug.
+        $exceptions->dontReport([
+            CorruptComponentPayloadException::class,
+            MissingFileUploadsTraitException::class,
+            MethodNotFoundException::class,
+            NonPublicComponentMethodCall::class,
+            PropertyNotFoundException::class,
+            PublicPropertyNotFoundException::class,
+        ]);
     })->create();
