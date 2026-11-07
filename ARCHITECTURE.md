@@ -32,7 +32,7 @@ app/
 bootstrap/app.php                 route registration, SecureHeaders global middleware
 routes/web.php                    all page routes + the quicklogin handler (closures)
 routes/api.php                    GET /api/user
-routes/console.php                scheduler (2 entries)
+routes/console.php                scheduler (3 entries)
 database/migrations/              23 migrations; SQLite locally
 resources/views/                  dashboard, event, welcome, auth/, profile/, emails/, livewire/
 tests/Feature/                    17 Pest feature tests (the real suite; Unit/ is a placeholder)
@@ -154,23 +154,42 @@ columns, and writes `storage/app/exports/orders_{id}.csv` (league/csv) or
 
 ## 6b. Data flow: Google Calendar import
 
-`app:sync-google-calendar [--from= --kennel= --user=]` (`app/Console/Commands/SyncGoogleCalendar.php`)
-is run by hand, periodically. It reads a **public** calendar with a plain API key (no OAuth):
+`app:sync-google-calendar [--kennel= --user=]` (`app/Console/Commands/SyncGoogleCalendar.php`)
+reads a **public** calendar with a plain API key (no OAuth):
 `GET https://www.googleapis.com/calendar/v3/calendars/{id}/events?key=…&singleEvents=true`
 (`config/services.php` → `google.calendar_api_key` / `calendar_id` / `kennel`), follows
-`nextPageToken`, skips `status=cancelled`, and upserts on `events.google_event_id` (unique).
+`nextPageToken`, and upserts on `events.google_event_id` (unique).
+
+It is **incremental**: the first run reads the whole calendar (no `timeMin`), stores the response's
+`nextSyncToken` in the cache under `google-calendar-sync-token`, and every later run sends that
+token and receives only what changed since. `timeMin`/`orderBy` are never sent — neither can be
+combined with a token, and changing any query parameter invalidates it. A `410 GONE` forgets the
+token and re-reads everything, so losing the cache is self-healing. Cancelled items come back as
+bare tombstones; they are counted and left in place (deleting locally would take regos and tracks
+with them — no `--prune`).
+
+Owner of new events: `--user=email`, else the lowest-id `is_admin` user, then the lowest-id user —
+never a config value (the calendar id and API key identify the calendar, not a local account). The
+scheduler discards console output (`/dev/null`), so every line it prints is mirrored to
+`Log::info`/`warning`/`error`; a non-zero exit is also reported by `schedule:run`.
+
 Imported tags are the title head in A-Z0-9, always prefixed with the kennel abbreviation
 (`Red Dress Run` → `NVHHHREDDRESSRUN`, `Red Dress Run NVHHH 1318` → `NVHHHREDDRESSRUN1318`);
 a title with no words left (emoji only) falls back to the calendar id, and a manual tag is never
 overwritten.
-Only `name/description/location/starts_at/ends_at` are refreshed on re-sync; `created_by`,
-`kennel_id`, `event_tag`, `base_price`, `max_regos`, `private` are set once on insert — so imported
-past events become normal `Event` rows that the admin can edit or attach regos to. A repeated title
-(every yearly "GOTENGAGED") would break the unique `event_tag` index, so `Event`'s saving hook
-suffixes the collision with the start date and a counter before it reaches the database. The **entire raw
-calendar item** is stored verbatim in `events.google_payload` (nullable JSON) on every sync, so
+A re-sync writes back only when the item's `etag` differs from the one stored in `google_payload`,
+so replaying the calendar (first run, expired token) leaves untouched events alone. When the
+calendar item did change, `name/description/location/starts_at/ends_at/created_by` are overwritten
+from Google — a local edit to one of those loses to a concurrent remote edit; `kennel_id`,
+`base_price`, `max_regos`, `private`, the track rows and an edited `event_tag` are never touched —
+so imported past events become normal `Event` rows that the admin can edit or attach regos to.
+The command is scheduled `->hourly()` (`routes/console.php`); the first scheduled run imports the
+whole calendar, so run it by hand once before deploying the schedule. A repeated title (every yearly "GOTENGAGED") would break the unique `event_tag`
+index, so `Event`'s saving hook suffixes the collision with the start date and a counter before it
+reaches the database. The **entire raw calendar item** is stored verbatim in
+`events.google_payload` (nullable JSON) on every sync, so
 `etag/htmlLink/organizer/iCalUID/recurringEventId/transparency` stay available without schema
-changes. Deleting an event in Google does **not** delete it locally (no `--prune`; deliberate).
+changes.
 
 ## 6c. Data flow: GPX tracks
 

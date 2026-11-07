@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\Event;
+use App\Models\EventTrack;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
     $this->admin = User::create([
@@ -328,4 +331,175 @@ test('two calendar events with the same title get distinct tags', function () {
 
     expect($first->event_tag)->toBe('NVHHHGOTENGAGED')
         ->and($second->event_tag)->toBe('NVHHHGOTENGAG-20270214');
+});
+
+test('reads the whole calendar once, then only what changed', function () {
+    Http::fake([
+        'www.googleapis.com/*syncToken=TOKEN-1*' => Http::response([
+            'items' => [[
+                'id' => 'delta-1',
+                'summary' => 'NVHHH 2100',
+                'start' => ['dateTime' => '2027-07-04T18:00:00-04:00'],
+                'end' => ['dateTime' => '2027-07-04T21:00:00-04:00'],
+            ]],
+            'nextSyncToken' => 'TOKEN-2',
+        ]),
+        'www.googleapis.com/*' => Http::response([
+            'items' => [[
+                'id' => 'full-1',
+                'summary' => 'NVHHH 2000',
+                'start' => ['dateTime' => '2020-07-04T18:00:00-04:00'],
+                'end' => ['dateTime' => '2020-07-04T21:00:00-04:00'],
+            ]],
+            'nextSyncToken' => 'TOKEN-1',
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+    expect(Cache::get('google-calendar-sync-token'))->toBe('TOKEN-1');
+
+    Http::assertSent(fn ($request): bool => ! str_contains($request->url(), 'timeMin')
+        && ! str_contains($request->url(), 'syncToken'));
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect(Cache::get('google-calendar-sync-token'))->toBe('TOKEN-2')
+        ->and(Event::where('google_event_id', 'delta-1')->exists())->toBeTrue()
+        ->and(Event::where('google_event_id', 'full-1')->count())->toBe(1);
+});
+
+test('an unchanged calendar item keeps the local edit, kennel and tracks', function () {
+    $item = [
+        'id' => 'etag-1',
+        'summary' => 'NVHHH 1400',
+        'etag' => '"aaa"',
+        'start' => ['dateTime' => '2026-11-07T18:00:00-05:00'],
+        'end' => ['dateTime' => '2026-11-07T21:00:00-05:00'],
+    ];
+
+    Http::fake(['www.googleapis.com/*' => Http::sequence()
+        ->push(['items' => [$item], 'nextSyncToken' => 'TOKEN-1'])
+        ->push(['items' => [$item], 'nextSyncToken' => 'TOKEN-2'])]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    $event = Event::where('google_event_id', 'etag-1')->firstOrFail();
+    $event->update(['name' => 'Typo fixed by hand']);
+
+    EventTrack::create([
+        'event_id' => $event->id,
+        'user_id' => $this->admin->id,
+        'name' => 'trail.gpx',
+        'path' => "gpx/{$event->id}/trail.gpx",
+        'size' => 10,
+        'points' => [[40.0, -77.0]],
+    ]);
+
+    // Force the full-read path: no token, so the whole calendar is replayed.
+    Cache::forget('google-calendar-sync-token');
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    $event->refresh();
+
+    expect($event->name)->toBe('Typo fixed by hand')
+        ->and($event->event_tag)->toBe('NVHHH1400')
+        ->and($event->kennel?->abbreviation)->toBe('NVHHH')
+        ->and($event->tracks()->count())->toBe(1);
+});
+
+test('a changed calendar item still wins over a local edit', function () {
+    $before = [
+        'id' => 'etag-2',
+        'summary' => 'NVHHH 1400',
+        'etag' => '"aaa"',
+        'start' => ['dateTime' => '2026-11-07T18:00:00-05:00'],
+        'end' => ['dateTime' => '2026-11-07T21:00:00-05:00'],
+    ];
+
+    $after = [
+        'id' => 'etag-2',
+        'summary' => 'NVHHH 1400 moved',
+        'etag' => '"bbb"',
+        'start' => ['dateTime' => '2026-11-08T18:00:00-05:00'],
+        'end' => ['dateTime' => '2026-11-08T21:00:00-05:00'],
+    ];
+
+    Http::fake(['www.googleapis.com/*' => Http::sequence()
+        ->push(['items' => [$before], 'nextSyncToken' => 'TOKEN-1'])
+        ->push(['items' => [$after], 'nextSyncToken' => 'TOKEN-2'])]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    $event = Event::where('google_event_id', 'etag-2')->firstOrFail();
+    $event->update(['name' => 'Hand edit']);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect($event->refresh()->name)->toBe('NVHHH 1400 moved')
+        ->and($event->starts_at->toDateString())->toBe('2026-11-08');
+});
+
+test('an expired sync token falls back to a full read', function () {
+    Cache::forever('google-calendar-sync-token', 'STALE');
+
+    Http::fakeSequence()
+        ->push([], 410)
+        ->push([
+            'items' => [[
+                'id' => 'fresh-1',
+                'summary' => 'NVHHH 2000',
+                'start' => ['dateTime' => '2020-07-04T18:00:00-04:00'],
+                'end' => ['dateTime' => '2020-07-04T21:00:00-04:00'],
+            ]],
+            'nextSyncToken' => 'FRESH',
+        ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    expect(Event::where('google_event_id', 'fresh-1')->exists())->toBeTrue()
+        ->and(Cache::get('google-calendar-sync-token'))->toBe('FRESH');
+});
+
+test('logs the same counts it prints', function () {
+    Log::spy();
+
+    Http::fake([
+        'www.googleapis.com/*' => Http::response([
+            'items' => [
+                [
+                    'id' => 'log-1',
+                    'summary' => 'NVHHH 1300',
+                    'start' => ['dateTime' => '2026-11-07T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2026-11-07T21:00:00-05:00'],
+                ],
+                [
+                    'id' => 'log-cancelled',
+                    'summary' => 'Cancelled Hash',
+                    'status' => 'cancelled',
+                    'start' => ['dateTime' => '2020-01-01T18:00:00-05:00'],
+                    'end' => ['dateTime' => '2020-01-01T20:00:00-05:00'],
+                ],
+            ],
+            'nextSyncToken' => 'TOKEN-1',
+        ]),
+    ]);
+
+    $this->artisan('app:sync-google-calendar')->assertSuccessful();
+
+    Log::shouldHaveReceived('info')->withArgs(
+        fn (string $message, array $context = []): bool => $message === 'google calendar sync: imported events'
+            && $context === ['created' => 1, 'updated' => 0, 'cancelled' => 1]
+    )->once();
+});
+
+test('logs a missing default owner', function () {
+    Log::spy();
+    User::query()->delete();
+
+    $this->artisan('app:sync-google-calendar')->assertFailed();
+
+    Log::shouldHaveReceived('error')->withArgs(
+        fn (string $message): bool => $message === 'google calendar sync: no user found to own imported events'
+    )->once();
 });
