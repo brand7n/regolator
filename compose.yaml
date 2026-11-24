@@ -1,8 +1,8 @@
 services:
   php:
     build:
-      context: .
-      dockerfile: Dockerfile.php-fpm
+      context: ${HOME}/docker/php-fpm
+      dockerfile: Dockerfile
     image: regolator-php
     container_name: regolator-php
     working_dir: /home/brandin/regolator
